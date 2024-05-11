@@ -3,7 +3,7 @@ import unittest.mock as mock
 
 import pytest
 
-import src.parser as parser
+import habits_txt.parser as parser
 
 
 def test_parse_file(monkeypatch):
@@ -11,7 +11,7 @@ def test_parse_file(monkeypatch):
         "builtins.open",
         mock.mock_open(read_data="  2024-01-01 track 'Sample habit' * * *  "),
     ):
-        monkeypatch.setattr("src.parser._parse_directive", mock.MagicMock())
+        monkeypatch.setattr("habits_txt.parser._parse_directive", mock.MagicMock())
         directives, errors = parser.parse_file("example.journal")
         assert len(directives) == 1
         parser._parse_directive.assert_called_once_with(
@@ -20,7 +20,7 @@ def test_parse_file(monkeypatch):
         assert len(errors) == 0
 
         monkeypatch.setattr(
-            "src.parser._parse_directive",
+            "habits_txt.parser._parse_directive",
             mock.MagicMock(side_effect=parser.exceptions.ParseError("Error")),
         )
         directives, errors = parser.parse_file("example.journal")

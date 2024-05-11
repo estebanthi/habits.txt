@@ -1,10 +1,10 @@
 [tool.poetry]
 name = "habits.txt"
-version = "0.1.1"
+version = "0.1.2"
 description = ""
 authors = ["estebanthi <esteban.thilliez@gmail.com>"]
 readme = "README.md"
-packages = [{include = "src"},{include = "main.py"}]
+packages = [{include = "habits_txt"},{include = "main.py"}]
 
 [tool.poetry.dependencies]
 python = "^3.12"

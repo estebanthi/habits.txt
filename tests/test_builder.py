@@ -2,7 +2,7 @@ import datetime as dt
 
 import pytest
 
-import src.builder as builder
+import habits_txt.builder as builder
 
 
 def test_sort_directives():

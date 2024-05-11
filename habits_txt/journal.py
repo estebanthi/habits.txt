@@ -1,11 +1,11 @@
 import datetime as dt
 import logging
 
-import src.builder as builder
-import src.defaults as defaults
-import src.exceptions as exceptions
-import src.models as models
-import src.parser as parser
+import habits_txt.builder as builder
+import habits_txt.defaults as defaults
+import habits_txt.exceptions as exceptions
+import habits_txt.models as models
+import habits_txt.parser as parser
 
 
 def get_state_at_date(

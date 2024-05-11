@@ -1,7 +1,7 @@
 import datetime as dt
 from enum import Enum
 
-import src.models as models
+import habits_txt.models as models
 
 
 class DirectiveType(Enum):

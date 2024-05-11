@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 import croniter
 
-import src.defaults as defaults
+import habits_txt.defaults as defaults
 
 
 @dataclass

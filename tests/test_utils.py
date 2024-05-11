@@ -1,6 +1,6 @@
 import datetime as dt
 
-import src.utils as utils
+import habits_txt.utils as utils
 
 
 def test_build_dates_between_dates():

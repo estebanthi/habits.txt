@@ -2,8 +2,8 @@ import argparse
 import datetime as dt
 import logging
 
-import src.defaults as defaults
-import src.journal as journal
+import habits_txt.defaults as defaults
+import habits_txt.journal as journal
 
 
 def parse_args(args: list[str]) -> argparse.Namespace:

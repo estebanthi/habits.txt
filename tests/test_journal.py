@@ -1,4 +1,4 @@
-import src.journal as journal
+import habits_txt.journal as journal
 
 
 def test_get_most_recent_record():

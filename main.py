@@ -1,7 +1,7 @@
 import logging
 import sys
 
-import src.cli as cli
+import habits_txt.cli as cli
 
 
 def main():

@@ -1,6 +1,6 @@
 import datetime as dt
 
-import src.models as models
+import habits_txt.models as models
 
 
 def test_frequency_next_date():

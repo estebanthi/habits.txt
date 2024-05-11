@@ -1,8 +1,8 @@
 import datetime as dt
 
-import src.directives as directives
-import src.exceptions as exceptions
-import src.models as models
+import habits_txt.directives as directives
+import habits_txt.exceptions as exceptions
+import habits_txt.models as models
 
 
 def _sort_directives(

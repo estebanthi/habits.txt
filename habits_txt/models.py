@@ -70,5 +70,7 @@ class HabitRecord:
         return bool(self.value)
 
     def __str__(self) -> str:
-        return (f'{dt.datetime.strftime(self.date, defaults.DATE_FMT)} '
-                f'"{self.habit_name}" {self.value if self.value is not None else ""}')
+        return (
+            f"{dt.datetime.strftime(self.date, defaults.DATE_FMT)} "
+            f'"{self.habit_name}" {self.value if self.value is not None else ""}'
+        )

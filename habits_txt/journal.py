@@ -1,5 +1,6 @@
 import datetime as dt
 import logging
+import typing
 
 import habits_txt.builder as builder
 import habits_txt.defaults as defaults
@@ -10,7 +11,7 @@ import habits_txt.parser as parser
 
 def get_state_at_date(
     journal_file: str, date: dt.date
-) -> (set[models.Habit], list[models.HabitRecord]):
+) -> typing.Tuple[set[models.Habit], list[models.HabitRecord]]:
     """
     Get the state of the habits at a given date.
 
@@ -66,10 +67,11 @@ def fill_day(
         if next_due_date <= date:
             if interactive:
                 value_is_valid = False
+                parsed_value = None
                 while not value_is_valid:
                     value = input(f"{habit.name} ({next_due_date}): ")
                     try:
-                        parsed_value = parser._parse_value(value)
+                        parsed_value = parser.parse_value_str(value)
                         value_is_valid = True
                     except exceptions.ParseError as e:
                         logging.error(e)

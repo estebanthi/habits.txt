@@ -17,7 +17,6 @@ A habit is defined by a frequency, else it's called a task. The minimum frequenc
 
 A habit can be boolean or numeric. A boolean habit is either done or not done. A numeric habit is a value, like the number of pages read in a day.
 
-
 ## Format
 
 Habits are tracked in what I call a "journal" which is just a plain text file. A journal contains "directives".
@@ -36,7 +35,6 @@ You can't add comments at the end of a line.
 2024-01-01 track "Read 5 pages a day"
 ```
 
-
 ## Directives
 
 ### track
@@ -46,6 +44,7 @@ To start tracking a habit, you use the `track` directive and specify the frequen
 The frequency follows a simplified [cron](https://en.wikipedia.org/wiki/Cron) syntax, omitting the minute and the hour.
 
 Example:
+
 ```
 2024-01-01 track "Read 5 pages a day" * * *
 2024-01-01 track "Exercise" * * 1,3,5
@@ -56,6 +55,7 @@ Example:
 To stop tracking a habit, you use the `untrack` directive.
 
 Example:
+
 ```
 2024-02-01 untrack "Read 5 pages a day"
 ```
@@ -69,6 +69,7 @@ The allowed values are `yes`, `no`, or a number. You should not mix boolean and 
 You can write directives but omit the directive type, it will default to `record`.
 
 Example:
+
 ```
 2024-01-01 record "Read 5 pages a day" 5
 2024-01-01 record "Workout" yes

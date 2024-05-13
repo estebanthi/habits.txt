@@ -1,4 +1,5 @@
 import datetime as dt
+import typing
 
 import habits_txt.directives as directives
 import habits_txt.exceptions as exceptions
@@ -56,7 +57,7 @@ def _get_tracked_habits_at_date(
     ]
     sorted_directives = _sort_directives(directives_before_date)
 
-    current_state = set()
+    current_state: set[models.Habit] = set()
     for directive in sorted_directives:
         if isinstance(directive, directives.TrackDirective):
             _check_track_directive_is_valid(directive, current_state)
@@ -168,7 +169,7 @@ def _build_habit_record_from_record_directive(
 
 
 def _get_records_up_to_date(
-    directives_: list[directives.Directive], date: dt.datetime
+    directives_: list[directives.Directive], date: dt.date
 ) -> list[models.HabitRecord]:
     """
     Get the records up to a given date.
@@ -190,7 +191,7 @@ def _get_records_up_to_date(
     ]
     sorted_directives = _sort_directives(directives_before_date)
 
-    records = []
+    records: list[models.HabitRecord] = []
     for directive in sorted_directives:
         if isinstance(directive, directives.RecordDirective):
             tracked_habits_at_date = _get_tracked_habits_at_date(
@@ -236,7 +237,7 @@ def _check_record_directive_is_valid(
 
 def get_state_at_date(
     directives_: list[directives.Directive], date: dt.date
-) -> (set[models.Habit], list[models.HabitRecord]):
+) -> typing.Tuple[set[models.Habit], list[models.HabitRecord]]:
     """
     Get the state of the habits at a given date.
 

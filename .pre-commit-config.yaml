@@ -26,6 +26,9 @@ repos:
     rev: v1.10.0
     hooks:
       - id: mypy
+        args: [--ignore-missing-imports]
+        additional_dependencies:
+          - types-croniter
   - repo: https://github.com/pycqa/isort
     rev: 5.13.2
     hooks:

@@ -1,6 +1,7 @@
 import datetime as dt
 import logging
 import re
+import typing
 from functools import wraps
 
 import croniter
@@ -11,7 +12,7 @@ import habits_txt.exceptions as exceptions
 import habits_txt.models as models
 
 
-def parse_file(file_path: str) -> (list[directives.Directive], list[str]):
+def parse_file(file_path: str) -> typing.Tuple[list[directives.Directive], list[str]]:
     """
     Parse a journal file and return a list of directives and a list of parse errors.
 
@@ -84,6 +85,8 @@ def _parse_directive(directive_line: str) -> directives.Directive | None:
 
     except IndexError:
         raise exceptions.ParseError(f"Invalid directive format: {directive_line}")
+
+    return None
 
 
 def _handle_index_error_decorator(name):

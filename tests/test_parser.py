@@ -143,7 +143,7 @@ def test_parse_value_str():
 
 def test_handle_index_error_decorator():
     @parser._handle_index_error_decorator(name="value")
-    def _parse_value(directive_parts: list[str]) -> bool | float:
+    def _parse_value(directive_parts: list[str]):
         return directive_parts[100]
 
     with pytest.raises(parser.exceptions.ParseError):

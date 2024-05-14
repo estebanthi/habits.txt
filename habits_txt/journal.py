@@ -1,16 +1,18 @@
 import datetime as dt
 import logging
+import typing
 
 import habits_txt.builder as builder
 import habits_txt.defaults as defaults
 import habits_txt.exceptions as exceptions
 import habits_txt.models as models
 import habits_txt.parser as parser
+import habits_txt.records_query as records_query
 
 
 def get_state_at_date(
     journal_file: str, date: dt.date
-) -> (set[models.Habit], list[models.HabitRecord]):
+) -> typing.Tuple[set[models.Habit], list[models.HabitRecord]]:
     """
     Get the state of the habits at a given date.
 
@@ -18,9 +20,16 @@ def get_state_at_date(
     :param date: Date to check.
     :return: Tracked habits, records.
     """
-    directives, errors = parser.parse_file(journal_file)
-    _log_errors(errors)
-    return builder.get_state_at_date(directives, date)
+    directives, parse_errors = parser.parse_file(journal_file)
+    _log_errors(parse_errors)
+    try:
+        tracked_habits, records = builder.get_state_at_date(directives, date)
+    except exceptions.ConsistencyError as e:
+        logging.error(e)
+        logging.error("Cannot continue due to consistency errors")
+        exit(1)
+
+    return tracked_habits, records
 
 
 def _log_errors(errors: list[str]):
@@ -57,8 +66,8 @@ def fill_day(
             # because we can have a record directive the day we start to track a habit
             next_due_date = habit.frequency.get_next_date(date - dt.timedelta(days=1))
         else:
-            most_recent_and_completed_record = _get_most_recent_and_completed_record(
-                habit, records
+            most_recent_and_completed_record = (
+                records_query.get_most_recent_and_completed_record(habit, habit_records)
             )
             next_due_date = habit.frequency.get_next_date(
                 most_recent_and_completed_record.date
@@ -66,10 +75,11 @@ def fill_day(
         if next_due_date <= date:
             if interactive:
                 value_is_valid = False
+                parsed_value = None
                 while not value_is_valid:
                     value = input(f"{habit.name} ({next_due_date}): ")
                     try:
-                        parsed_value = parser._parse_value(value)
+                        parsed_value = parser.parse_value_str(value)
                         value_is_valid = True
                     except exceptions.ParseError as e:
                         logging.error(e)
@@ -79,42 +89,6 @@ def fill_day(
             records_fill.append(record)
 
     return records_fill
-
-
-def _get_most_recent_record(
-    habit: models.Habit, records: list[models.HabitRecord]
-) -> models.HabitRecord:
-    """
-    Get the most recent record for a habit.
-
-    :param habit: Habit.
-    :param records: List of records.
-    :return: Most recent record.
-    """
-    return max(
-        (record for record in records if record.habit_name == habit.name),
-        key=lambda record: record.date,
-    )
-
-
-def _get_most_recent_and_completed_record(
-    habit: models.Habit, records: list[models.HabitRecord]
-) -> models.HabitRecord:
-    """
-    Get the most recent completed record for a habit.
-
-    :param habit: Habit.
-    :param records: List of records.
-    :return: Most recent completed record.
-    """
-    return max(
-        (
-            record
-            for record in records
-            if record.habit_name == habit.name and record.is_complete
-        ),
-        key=lambda record: record.date,
-    )
 
 
 def filter(

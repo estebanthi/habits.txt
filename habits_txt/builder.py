@@ -1,4 +1,5 @@
 import datetime as dt
+import typing
 
 import habits_txt.directives as directives
 import habits_txt.exceptions as exceptions
@@ -11,7 +12,7 @@ def _sort_directives(
     """
     Sort the directives by date.
 
-    :param directives: List of directives.
+    :param directives_: List of directives.
     :return: Sorted list of directives.
 
     Example:
@@ -22,15 +23,6 @@ def _sort_directives(
     [directive1, directive2]
     """
     return sorted(directives_, key=lambda directive_: directive_.date)
-
-
-"""
-checks:
-- each untrack directive has a corresponding track directive before it
-- each record directive has a corresponding track directive before it
-- there can't be several tracked habits with the same name
-- there can't be several records of the same habit on the same day
-"""
 
 
 def _get_tracked_habits_at_date(
@@ -56,7 +48,7 @@ def _get_tracked_habits_at_date(
     ]
     sorted_directives = _sort_directives(directives_before_date)
 
-    current_state = set()
+    current_state: set[models.Habit] = set()
     for directive in sorted_directives:
         if isinstance(directive, directives.TrackDirective):
             _check_track_directive_is_valid(directive, current_state)
@@ -87,7 +79,8 @@ def _check_track_directive_is_valid(
     """
     if directive.habit_name in {habit.name for habit in tracked_habits}:
         raise exceptions.ConsistencyError(
-            f"Several tracked habits with the same name: {directive.habit_name}"
+            f"Several tracked habits with the same name: {directive.habit_name}",
+            directive,
         )
 
 
@@ -107,7 +100,8 @@ def _check_untrack_directive_is_valid(
     """
     if directive.habit_name not in {habit.name for habit in tracked_habits}:
         raise exceptions.ConsistencyError(
-            f"Untracked habit without a corresponding track directive: {directive.habit_name}"
+            f"Untracked habit without a corresponding track directive: {directive.habit_name}",
+            directive,
         )
 
 
@@ -146,7 +140,9 @@ def _build_habit_from_track_directive(
     >>> print(habit)
     Habit 1
     """
-    return models.Habit(directive.habit_name, directive.frequency)
+    return models.Habit(
+        directive.habit_name, directive.frequency, directive.is_measurable
+    )
 
 
 def _build_habit_record_from_record_directive(
@@ -168,7 +164,7 @@ def _build_habit_record_from_record_directive(
 
 
 def _get_records_up_to_date(
-    directives_: list[directives.Directive], date: dt.datetime
+    directives_: list[directives.Directive], date: dt.date
 ) -> list[models.HabitRecord]:
     """
     Get the records up to a given date.
@@ -190,7 +186,7 @@ def _get_records_up_to_date(
     ]
     sorted_directives = _sort_directives(directives_before_date)
 
-    records = []
+    records: list[models.HabitRecord] = []
     for directive in sorted_directives:
         if isinstance(directive, directives.RecordDirective):
             tracked_habits_at_date = _get_tracked_habits_at_date(
@@ -222,7 +218,8 @@ def _check_record_directive_is_valid(
     """
     if directive.habit_name not in {habit.name for habit in tracked_habits}:
         raise exceptions.ConsistencyError(
-            f"Recorded habit without a corresponding track directive: {directive.habit_name}"
+            f"Recorded habit without a corresponding track directive: {directive.habit_name}",
+            directive,
         )
 
     if any(
@@ -230,13 +227,27 @@ def _check_record_directive_is_valid(
         for record in records
     ):
         raise exceptions.ConsistencyError(
-            f"Several records of the same habit on the same day: {directive.habit_name}"
+            f"Several records of the same habit on the same day: {directive.habit_name}",
+            directive,
         )
+
+    for habit in tracked_habits:
+        if habit.name == directive.habit_name:
+            if habit.is_measurable and not isinstance(directive.value, float):
+                raise exceptions.ConsistencyError(
+                    f"Measurable habit with a non-float value: {directive.habit_name}",
+                    directive,
+                )
+            if not habit.is_measurable and not isinstance(directive.value, bool):
+                raise exceptions.ConsistencyError(
+                    f"Non-measurable habit with a non-bool value: {directive.habit_name}",
+                    directive,
+                )
 
 
 def get_state_at_date(
     directives_: list[directives.Directive], date: dt.date
-) -> (set[models.Habit], list[models.HabitRecord]):
+) -> typing.Tuple[set[models.Habit], list[models.HabitRecord]]:
     """
     Get the state of the habits at a given date.
 

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "habits.txt"
-version = "0.1.2"
+version = "0.2.0"
 description = ""
 authors = ["estebanthi <esteban.thilliez@gmail.com>"]
 readme = "README.md"
@@ -9,6 +9,8 @@ packages = [{include = "habits_txt"},{include = "main.py"}]
 [tool.poetry.dependencies]
 python = "^3.12"
 croniter = "^2.0.5"
+types-croniter = "^2.0.0.20240423"
+click = "^8.1.7"
 
 [tool.poetry.scripts]
 hbtxt = "main:main"
@@ -19,6 +21,10 @@ pytest = "^8.2.0"
 coverage = "^7.5.1"
 isort = "^5.13.2"
 flake8 = "^7.0.0"
+black = "^24.4.2"
+mypy = "^1.10.0"
+types-croniter = "^2.0.0.20240423"
+pre-commit = "^3.7.1"
 
 [build-system]
 requires = ["poetry-core"]

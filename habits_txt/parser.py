@@ -61,26 +61,24 @@ def _parse_directive(directive_line: str) -> directives.Directive | None:
     :return: Parsed directive or None if not a directive.
 
     Example:
-    >>> directive_line = '2024-01-01 track "Sample habit" * * *'
+    >>> directive_line = '2024-01-01 track "Sample habit" (* * *)'
     >>> parsed_directive = _parse_directive(directive_line)
     """
     if not directive_line or directive_line.startswith(defaults.COMMENT_CHAR):
         return None
     directive_line = re.sub(r"\s+", " ", directive_line)  # Remove extra spaces
-
-    parts = directive_line.split(" ")
     try:
-        date = _parse_date(parts)
-        directive_type = _parse_directive_type(parts)
-        habit_name = _parse_habit_name(parts)
+        date = _parse_date(directive_line)
+        directive_type = _parse_directive_type(directive_line)
+        habit_name = _parse_habit_name(directive_line)
 
         if directive_type == directives.DirectiveType.TRACK:
-            frequency = _parse_frequency(parts)
+            frequency = _parse_frequency(directive_line)
             return directives.TrackDirective(date, habit_name, frequency)
         elif directive_type == directives.DirectiveType.UNTRACK:
             return directives.UntrackDirective(date, habit_name)
         elif directive_type == directives.DirectiveType.RECORD:
-            value = _parse_value(parts)
+            value = _parse_value(directive_line)
             return directives.RecordDirective(date, habit_name, value)
 
     except IndexError:
@@ -115,47 +113,57 @@ def _handle_index_error_decorator(name):
 
 
 @_handle_index_error_decorator(name="date")
-def _parse_date(directive_parts: list[str]) -> dt.date:
+def _parse_date(directive_line: str) -> dt.date:
     """
-    Parse the date from a list of directive parts.
+    Parse the date from a directive line.
 
-    The date is ALWAYS the first part of the directive.
+    The date is ALWAYS the first part of the directive and must be in the format YYYY-MM-DD.
 
-    :param parts: Directive parts.
+    :param directive_line: Directive line.
     :return: Parsed date.
 
     Example:
-    >>> directive_parts = ['2024-01-01', 'track', '"Sample', 'habit"', '*', '*', '*']
-    >>> date = _parse_date(directive_parts)
+    >>> directive_line = '2024-01-01 track "Sample habit" (* * *)'
+    >>> date = _parse_date(directive_line)
     >>> print(date)
     2024-01-01
     """
-    date_str = directive_parts[0]
+    res = re.search(r"^\d{4}-\d{2}-\d{2}", directive_line)
+    if res is None:
+        raise exceptions.ParseError(
+            f"Could not find a date in the directive: {directive_line}"
+        )
+    date_str = res.group(0)
     try:
         date = dt.datetime.strptime(date_str, defaults.DATE_FMT).date()
     except ValueError:
-        raise exceptions.ParseError(f"Invalid date format: {date_str}")
+        raise exceptions.ParseError(f"Found a date but it is invalid: {date_str}")
     return date
 
 
 @_handle_index_error_decorator(name="directive type")
-def _parse_directive_type(directive_parts: list[str]) -> directives.DirectiveType:
+def _parse_directive_type(directive_line: str) -> directives.DirectiveType:
     """
-    Parse the directive type from a list of directive parts.
+    Parse the directive type from a directive line.
 
     The directive type is the second part of the directive. But it can be omitted and will result in
     a record directive.
 
-    :param directive_parts: Directive parts.
+    :param directive_line: Directive line.
     :return: Parsed directive type.
 
     Example:
-    >>> directive_parts = ['2024-01-01', 'track', '"Sample', 'habit"', '*', '*', '*']
-    >>> directive_type = _parse_directive_type(directive_parts)
+    >>> directive_line = '2024-01-01 track "Sample habit" (* * *)'
+    >>> directive_type = _parse_directive_type(directive_line)
     >>> print(directive_type)
     track
     """
-    directive_type_str = directive_parts[1]
+    try:
+        directive_type_str = re.split(r"\s+", directive_line)[1]
+    except IndexError:
+        raise exceptions.ParseError(
+            f"Could not find a directive type in the directive: {directive_line}"
+        )
     try:
         # If there is no directive type, it is a record directive
         if re.match(rf'[{"".join(defaults.ALLOWED_QUOTES)}]', directive_type_str):
@@ -166,46 +174,57 @@ def _parse_directive_type(directive_parts: list[str]) -> directives.DirectiveTyp
 
 
 @_handle_index_error_decorator(name="habit name")
-def _parse_habit_name(directive_parts: list[str]) -> str:
+def _parse_habit_name(directive_line: str) -> str:
     """
-    Parse the habit name from a list of directive parts.
+    Parse the habit name from a directive line.
 
-    Parsing is done by joining all parts and searching for a string enclosed in quotes.
+    The habit name is the only part of the directive that is enclosed in quotes.
 
-    :param directive_parts: Directive parts.
+    :param directive_line: Directive line.
     :return: Parsed habit name.
 
     Example:
-    >>> parts = ['2024-01-01', 'track', '"Sample', 'habit"', '*', '*', '*']
-    >>> habit_name = _parse_habit_name(directive_parts)
+    >>> directive_line = '2024-01-01 track "Sample habit" (* * *)'
+    >>> habit_name = _parse_habit_name(directive_line)
     >>> print(habit_name)
     Sample habit
     """
-    joined_parts = " ".join(directive_parts)
     habit_name = re.search(
         rf'[{"".join(defaults.ALLOWED_QUOTES)}].*[{"".join(defaults.ALLOWED_QUOTES)}]',
-        joined_parts,
+        directive_line,
     )
     if habit_name is None:
-        raise exceptions.ParseError(f"Invalid habit name format: {joined_parts}")
+        raise exceptions.ParseError(
+            f"Could not find a habit name enclosed in quotes: {directive_line}"
+        )
     return habit_name.group(0)[1:-1]  # [1:-1] to remove quotes
 
 
 @_handle_index_error_decorator(name="frequency")
-def _parse_frequency(directive_parts: list[str]) -> models.Frequency:
+def _parse_frequency(directive_line: str) -> models.Frequency:
     """
-    Parse the frequency from a list of directive parts.
+    Parse the frequency from a directive line.
 
-    The frequency is ALWAYS the last three parts of a track directive.
+    The frequency is ALWAYS enclosed in parenthesis.
 
-    :param directive_parts: Directive parts.
+    :param directive_line: Directive line.
     :return: Parsed frequency.
 
     Example:
-    >>> directive_parts = ['2024-01-01', 'track', '"Sample', 'habit"', '*', '*', '*']
-    >>> frequency = _parse_frequency(directive_parts)
+    >>> directive_line = '2024-01-01 track "Sample habit" (* * *)'
+    >>> frequency = _parse_frequency(directive_line)
     """
-    day, month, day_of_week = directive_parts[-3:]
+    res = re.search(r"\(.*\)", directive_line)
+    if res is None:
+        raise exceptions.ParseError(
+            f"Could not find a frequency enclosed in parenthesis: {directive_line}"
+        )
+    frequency_str = res.group(0)
+    frequency_str = frequency_str[1:-1]
+    frequency_parts = frequency_str.split(" ")
+    if len(frequency_parts) != 3:
+        raise exceptions.ParseError(f"Invalid frequency format: {frequency_str}")
+    day, month, day_of_week = frequency_parts
     cron_expression = f"0 0 {day} {month} {day_of_week}"
     try:
         croniter.croniter(cron_expression)
@@ -215,9 +234,9 @@ def _parse_frequency(directive_parts: list[str]) -> models.Frequency:
 
 
 @_handle_index_error_decorator(name="value")
-def _parse_value(directive_parts: list[str]) -> bool | float:
+def _parse_value(directive_line: str) -> bool | float:
     """
-    Parse the value from a list of directive parts.
+    Parse the value from a directive line.
 
     The value is ALWAYS the last part of a record directive.
 
@@ -230,7 +249,7 @@ def _parse_value(directive_parts: list[str]) -> bool | float:
     >>> print(value)
     True
     """
-    value_str = directive_parts[-1]
+    value_str = re.split(r"\s+", directive_line)[-1]
     return parse_value_str(value_str)
 
 

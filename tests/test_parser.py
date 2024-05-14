@@ -9,13 +9,13 @@ import habits_txt.parser as parser
 def test_parse_file(monkeypatch):
     with mock.patch(
         "builtins.open",
-        mock.mock_open(read_data="  2024-01-01 track 'Sample habit' * * *  "),
+        mock.mock_open(read_data="  2024-01-01 track 'Sample habit' (* * *)  "),
     ):
         monkeypatch.setattr("habits_txt.parser._parse_directive", mock.MagicMock())
         directives, errors = parser.parse_file("example.journal")
         assert len(directives) == 1
         parser._parse_directive.assert_called_once_with(
-            "2024-01-01 track 'Sample habit' * * *"
+            "2024-01-01 track 'Sample habit' (* * *)"
         )
         assert len(errors) == 0
 
@@ -29,7 +29,7 @@ def test_parse_file(monkeypatch):
 
 
 def test_parse_directive(monkeypatch):
-    directive_line = "2024-01-01 track 'Sample habit' * * *"
+    directive_line = "2024-01-01 track 'Sample habit' (* * *)"
     directive = parser._parse_directive(directive_line)
     assert directive == parser.directives.TrackDirective(
         dt.date(2024, 1, 1), "Sample habit", parser.models.Frequency("*", "*", "*")
@@ -58,72 +58,75 @@ def test_parse_directive(monkeypatch):
 
 
 def test_parse_date():
-    parts = ["2024-01-01", "track", "'habit name'", "*", "*", "*"]
-    date = parser._parse_date(parts)
+    directive_line = "2024-01-01 track 'Sample habit' (* * *)"
+    date = parser._parse_date(directive_line)
     assert date == dt.date(2024, 1, 1)
 
     with pytest.raises(parser.exceptions.ParseError):
-        parser._parse_date(["2024", "01", "a", "track", "'habit name'", "*", "*", "*"])
+        parser._parse_date("2024-01-0 track 'Sample habit' (* * *)")
 
 
 def test_parse_directive_type():
-    parts = ["2024-01-01", "track", "'habit name'", "*", "*", "*"]
-    directive_type = parser._parse_directive_type(parts)
+    directive_line = "2024-01-01 track 'Sample habit' (* * *)"
+    directive_type = parser._parse_directive_type(directive_line)
     assert directive_type == parser.directives.DirectiveType.TRACK
 
-    parts = ["2024-01-01", "untrack", "'habit name'"]
-    directive_type = parser._parse_directive_type(parts)
+    directive_line = "2024-01-01 untrack 'habit name'"
+    directive_type = parser._parse_directive_type(directive_line)
     assert directive_type == parser.directives.DirectiveType.UNTRACK
 
-    parts = ["2024-01-01", "'habit name'", "yes"]
-    directive_type = parser._parse_directive_type(parts)
+    directive_line = "2024-01-01 'habit name' yes"
+    directive_type = parser._parse_directive_type(directive_line)
     assert directive_type == parser.directives.DirectiveType.RECORD
 
-    parts = ["2024-01-01", "'habit name'", "2"]
-    directive_type = parser._parse_directive_type(parts)
+    directive_line = "2024-01-01 'habit name' 2"
+    directive_type = parser._parse_directive_type(directive_line)
     assert directive_type == parser.directives.DirectiveType.RECORD
 
-    parts = ["2024-01-01", "invalid", "5"]
+    directive_line = "2024-01-01 invalid 5"
     with pytest.raises(parser.exceptions.ParseError):
-        parser._parse_directive_type(parts)
+        parser._parse_directive_type(directive_line)
 
 
 def test_parse_habit_name():
-    habit_name = parser._parse_habit_name(["2024-04-01", "track", "'habit name'"])
+    directive_line = "2024-04-01 track 'habit name' (* * *)"
+    habit_name = parser._parse_habit_name(directive_line)
     assert habit_name == "habit name"
 
-    habit_name = parser._parse_habit_name(
-        ["2024-04-01", "track", "'habit name'", "*", "*", "*"]
-    )
+    directive_line = "2024-04-01 track 'habit name' (* * *)"
+    habit_name = parser._parse_habit_name(directive_line)
     assert habit_name == "habit name"
 
     with pytest.raises(parser.exceptions.ParseError):
-        parser._parse_habit_name(["2024-04-01", "track", "habit name"])
+        directive_line = "2024-04-01 track habit name (* * *)"
+        parser._parse_habit_name(directive_line)
 
 
 def test_parse_frequency():
-    frequency = parser._parse_frequency(["*", "*", "*"])
+    directive_line = "2024-01-01 track 'Sample habit' (* * *)"
+    frequency = parser._parse_frequency(directive_line)
     assert frequency == parser.models.Frequency("*", "*", "*")
 
     with pytest.raises(parser.exceptions.ParseError):
-        parser._parse_frequency(["*", "*", "a"])
+        directive_line = "2024-01-01 track 'Sample habit' (* * a)"
+        parser._parse_frequency(directive_line)
 
 
 def test_parse_value():
-    parts = ["2024-01-01", "'habit name'", "10"]
-    value = parser._parse_value(parts)
+    directive_line = "2024-01-01 'habit name' 10"
+    value = parser._parse_value(directive_line)
     assert value == 10.0
 
-    parts = ["2024-01-01", "'habit name'", "a"]
+    directive_line = "2024-01-01 'habit name' a"
     with pytest.raises(parser.exceptions.ParseError):
-        parser._parse_value(parts)
+        parser._parse_value(directive_line)
 
-    parts = ["2024-01-01", "'habit name'", parser.defaults.BOOLEAN_TRUE]
-    value = parser._parse_value(parts)
+    directive_line = f"2024-01-01 'habit name' {parser.defaults.BOOLEAN_TRUE}"
+    value = parser._parse_value(directive_line)
     assert value is True
 
-    parts = ["2024-01-01", "'habit name'", parser.defaults.BOOLEAN_FALSE]
-    value = parser._parse_value(parts)
+    directive_line = f"2024-01-01 'habit name' {parser.defaults.BOOLEAN_FALSE}"
+    value = parser._parse_value(directive_line)
     assert value is False
 
 

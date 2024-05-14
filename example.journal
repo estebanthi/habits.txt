@@ -1,5 +1,5 @@
-2024-01-01 track "Reading" * * *
-2024-01-01 track "Weight" * * *
+2024-01-01 track "Reading" (* * *)
+2024-01-01 track "Weight" (* * *)
 
 2024-01-01 record "Reading" yes
 2024-01-01 record "Weight"  70
@@ -12,7 +12,7 @@
 # You don't have to write directives in the chronological order
 # It means you can organize your journal as you want, bottom-up, top-down, or anything else, it doesn't matter
 
-2023-01-01 track "Meditation" * * *
+2023-01-01 track "Meditation" (* * *)
 2023-01-01 "Meditation" yes
 
 # When you don't record a habit the day you were supposed to (defined by the frequency in the track directive),

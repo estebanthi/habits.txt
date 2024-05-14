@@ -24,7 +24,7 @@ Habits are tracked in what I call a "journal" which is just a plain text file. A
 A directive is composed of a date, a directive type, a habit name, and other metadata specific to the directive type. For example, here is a sample directive:
 
 ```
-2024-01-01 track "Read 5 pages a day"
+2024-01-01 track "Read 5 pages a day" (* * *)
 ```
 
 You can comment lines in your journal by starting them with a `#` character.
@@ -32,22 +32,22 @@ You can't add comments at the end of a line.
 
 ```
 # Start tracking a habit
-2024-01-01 track "Read 5 pages a day"
+2024-01-01 track "Read 5 pages a day" (* * *)
 ```
 
 ## Directives
 
 ### track
 
-To start tracking a habit, you use the `track` directive and specify the frequency of the habit.
+To start tracking a habit, you use the `track` directive and specify the frequency of the habit enclosed in parentheses.
 
 The frequency follows a simplified [cron](https://en.wikipedia.org/wiki/Cron) syntax, omitting the minute and the hour.
 
 Example:
 
 ```
-2024-01-01 track "Read 5 pages a day" * * *
-2024-01-01 track "Exercise" * * 1,3,5
+2024-01-01 track "Read 5 pages a day" (* * *)
+2024-01-01 track "Exercise" (* * 1,3,5)
 ```
 
 ### untrack

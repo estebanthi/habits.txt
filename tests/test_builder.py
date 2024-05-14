@@ -7,10 +7,10 @@ import habits_txt.builder as builder
 
 def test_sort_directives():
     directive1 = builder.directives.RecordDirective(
-        dt.datetime(2024, 1, 1), "Habit 1", False
+        dt.datetime(2024, 1, 1), "Habit 1", 1, False
     )
     directive2 = builder.directives.RecordDirective(
-        dt.datetime(2024, 1, 2), "Habit 2", True
+        dt.datetime(2024, 1, 2), "Habit 2", 1, True
     )
 
     sorted_directives = builder._sort_directives([directive2, directive1])
@@ -21,18 +21,21 @@ def test_get_tracked_habits_at_date():
     directive1 = builder.directives.TrackDirective(
         dt.datetime(2024, 1, 1),
         "Habit 1",
+        1,
         builder.models.Frequency("*", "*", "*"),
         False,
     )
     directive2 = builder.directives.TrackDirective(
         dt.datetime(2024, 1, 2),
         "Habit 2",
+        2,
         builder.models.Frequency("*", "*", "*"),
         False,
     )
     directive3 = builder.directives.TrackDirective(
         dt.datetime(2024, 1, 3),
         "Habit 3",
+        3,
         builder.models.Frequency("*", "*", "*"),
         False,
     )
@@ -50,6 +53,7 @@ def test_check_track_directive_is_valid():
     directive = builder.directives.TrackDirective(
         dt.datetime(2024, 1, 1),
         "Habit 1",
+        1,
         builder.models.Frequency("*", "*", "*"),
         False,
     )
@@ -61,6 +65,7 @@ def test_check_track_directive_is_valid():
     directive = builder.directives.TrackDirective(
         dt.datetime(2024, 1, 1),
         "Habit 1",
+        1,
         builder.models.Frequency("*", "*", "*"),
         False,
     )
@@ -72,13 +77,17 @@ def test_check_track_directive_is_valid():
 
 
 def test_check_untrack_directive_is_valid():
-    directive = builder.directives.UntrackDirective(dt.datetime(2024, 1, 1), "Habit 1")
+    directive = builder.directives.UntrackDirective(
+        dt.datetime(2024, 1, 1), "Habit 1", 1
+    )
     current_state = {
         builder.models.Habit("Habit 1", builder.models.Frequency("*", "*", "*"))
     }
     builder._check_untrack_directive_is_valid(directive, current_state)
 
-    directive = builder.directives.UntrackDirective(dt.datetime(2024, 1, 1), "Habit 1")
+    directive = builder.directives.UntrackDirective(
+        dt.datetime(2024, 1, 1), "Habit 1", 1
+    )
     current_state = {
         builder.models.Habit("Habit 2", builder.models.Frequency("*", "*", "*"))
     }
@@ -103,6 +112,7 @@ def test_build_habit_from_track_directive():
     directive = builder.directives.TrackDirective(
         dt.datetime(2024, 1, 1),
         "Habit 1",
+        1,
         builder.models.Frequency("*", "*", "*"),
         False,
     )
@@ -114,7 +124,7 @@ def test_build_habit_from_track_directive():
 
 def test_build_habit_record_from_record_directive():
     directive = builder.directives.RecordDirective(
-        dt.datetime(2024, 1, 1), "Habit 1", 2.0
+        dt.datetime(2024, 1, 1), "Habit 1", 1, 2.0
     )
     habit_record = builder._build_habit_record_from_record_directive(directive)
     assert habit_record == builder.models.HabitRecord(
@@ -126,17 +136,18 @@ def test_get_records_up_to_date():
     track_directive = builder.directives.TrackDirective(
         dt.datetime(2024, 1, 1),
         "Habit 1",
+        1,
         builder.models.Frequency("*", "*", "*"),
         False,
     )
     directive1 = builder.directives.RecordDirective(
-        dt.datetime(2024, 1, 1), "Habit 1", 2.0
+        dt.datetime(2024, 1, 1), "Habit 1", 1, 2.0
     )
     directive2 = builder.directives.RecordDirective(
-        dt.datetime(2024, 1, 2), "Habit 1", 3.0
+        dt.datetime(2024, 1, 2), "Habit 1", 1, 3.0
     )
     directive3 = builder.directives.RecordDirective(
-        dt.datetime(2024, 1, 3), "Habit 1", 4.0
+        dt.datetime(2024, 1, 3), "Habit 1", 1, 4.0
     )
 
     records = builder._get_records_up_to_date(
@@ -150,7 +161,7 @@ def test_get_records_up_to_date():
 
 def test_check_record_directive_is_valid():
     directive = builder.directives.RecordDirective(
-        dt.datetime(2024, 1, 1), "Habit 1", 2.0
+        dt.datetime(2024, 1, 1), "Habit 1", 1, 2.0
     )
     tracked_habits = {
         builder.models.Habit("Habit 1", builder.models.Frequency("*", "*", "*"))

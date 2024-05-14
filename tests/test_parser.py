@@ -15,7 +15,8 @@ def test_parse_file(monkeypatch):
         directives, errors = parser.parse_file("example.journal")
         assert len(directives) == 1
         parser._parse_directive.assert_called_once_with(
-            "2024-01-01 track 'Sample habit' (* * *)"
+            "2024-01-01 track 'Sample habit' (* * *)",
+            1,
         )
         assert len(errors) == 0
 
@@ -30,10 +31,11 @@ def test_parse_file(monkeypatch):
 
 def test_parse_directive(monkeypatch):
     directive_line = "2024-01-01 track 'Sample habit' (* * *)"
-    directive = parser._parse_directive(directive_line)
+    directive = parser._parse_directive(directive_line, 1)
     assert directive == parser.directives.TrackDirective(
         dt.date(2024, 1, 1),
         "Sample habit",
+        1,
         parser.models.Frequency("*", "*", "*"),
         False,
     )
@@ -41,34 +43,35 @@ def test_parse_directive(monkeypatch):
     directive_line = (
         f"2024-01-01 track 'Sample habit' (* * *) {parser.defaults.MEASURABLE_KEYWORD}"
     )
-    directive = parser._parse_directive(directive_line)
+    directive = parser._parse_directive(directive_line, 1)
     assert directive == parser.directives.TrackDirective(
         dt.date(2024, 1, 1),
         "Sample habit",
+        1,
         parser.models.Frequency("*", "*", "*"),
         True,
     )
 
     directive_line = "2024-01-02 'Sample habit' yes"
-    directive = parser._parse_directive(directive_line)
+    directive = parser._parse_directive(directive_line, 2)
     assert directive == parser.directives.RecordDirective(
-        dt.date(2024, 1, 2), "Sample habit", True
+        dt.date(2024, 1, 2), "Sample habit", 2, True
     )
 
     directive_line = "2024-01-03 untrack 'Sample habit'"
-    directive = parser._parse_directive(directive_line)
+    directive = parser._parse_directive(directive_line, 3)
     assert directive == parser.directives.UntrackDirective(
-        dt.date(2024, 1, 3), "Sample habit"
+        dt.date(2024, 1, 3), "Sample habit", 3
     )
 
     directive_line = "2024-01-04 'Sample habit' 2"
-    directive = parser._parse_directive(directive_line)
+    directive = parser._parse_directive(directive_line, 4)
     assert directive == parser.directives.RecordDirective(
-        dt.date(2024, 1, 4), "Sample habit", 2.0
+        dt.date(2024, 1, 4), "Sample habit", 4, 2.0
     )
 
-    assert parser._parse_directive("") is None
-    assert parser._parse_directive(parser.defaults.COMMENT_CHAR) is None
+    assert parser._parse_directive("", 5) is None
+    assert parser._parse_directive(parser.defaults.COMMENT_CHAR, 6) is None
 
 
 def test_parse_date():

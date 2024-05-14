@@ -42,7 +42,7 @@ def parse_file(file_path: str) -> typing.Tuple[list[directives.Directive], list[
         logging.debug(f"Parsing line {lineno}: {line}")
 
         try:
-            parsed_directive = _parse_directive(line)
+            parsed_directive = _parse_directive(line, lineno)
             if parsed_directive:
                 parsed_directives.append(parsed_directive)
         except exceptions.ParseError as e:
@@ -52,17 +52,18 @@ def parse_file(file_path: str) -> typing.Tuple[list[directives.Directive], list[
     return parsed_directives, errors
 
 
-def _parse_directive(directive_line: str) -> directives.Directive | None:
+def _parse_directive(directive_line: str, lineno: int) -> directives.Directive | None:
     """
     Parse a single directive line.
     If the line is a comment or empty, return None.
 
     :param directive_line: Directive line.
+    :param lineno: Line number.
     :return: Parsed directive or None if not a directive.
 
     Example:
     >>> directive_line = '2024-01-01 track "Sample habit" (* * *)'
-    >>> parsed_directive = _parse_directive(directive_line)
+    >>> parsed_directive = _parse_directive(directive_line, 1)
     """
     if not directive_line or directive_line.startswith(defaults.COMMENT_CHAR):
         return None
@@ -78,12 +79,14 @@ def _parse_directive(directive_line: str) -> directives.Directive | None:
                 re.search(rf"{defaults.MEASURABLE_KEYWORD}$", directive_line)
                 is not None
             )
-            return directives.TrackDirective(date, habit_name, frequency, is_measurable)
+            return directives.TrackDirective(
+                date, habit_name, lineno, frequency, is_measurable
+            )
         elif directive_type == directives.DirectiveType.UNTRACK:
-            return directives.UntrackDirective(date, habit_name)
+            return directives.UntrackDirective(date, habit_name, lineno)
         elif directive_type == directives.DirectiveType.RECORD:
             value = _parse_value(directive_line)
-            return directives.RecordDirective(date, habit_name, value)
+            return directives.RecordDirective(date, habit_name, lineno, value)
 
     except IndexError:
         raise exceptions.ParseError(f"Invalid directive format: {directive_line}")

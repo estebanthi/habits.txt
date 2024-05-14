@@ -15,9 +15,10 @@ class Directive:
 
     directive_type: DirectiveType
 
-    def __init__(self, date: dt.date, habit_name: str):
+    def __init__(self, date: dt.date, habit_name: str, lineno: int):
         self.date = date
         self.habit_name = habit_name
+        self.lineno = lineno
 
     def __eq__(self, other):
         return self.date == other.date and self.habit_name == other.habit_name
@@ -34,10 +35,11 @@ class TrackDirective(Directive):
         self,
         date: dt.date,
         habit_name: str,
+        lineno: int,
         frequency: models.Frequency,
         is_measurable: bool,
     ):
-        super().__init__(date, habit_name)
+        super().__init__(date, habit_name, lineno)
         self.frequency = frequency
         self.is_measurable = is_measurable
 
@@ -59,16 +61,18 @@ class UntrackDirective(Directive):
 
     directive_type = DirectiveType.UNTRACK
 
-    def __init__(self, date: dt.date, habit_name: str):
-        super().__init__(date, habit_name)
+    def __init__(self, date: dt.date, habit_name: str, lineno: int):
+        super().__init__(date, habit_name, lineno)
 
 
 class RecordDirective(Directive):
 
     directive_type = DirectiveType.RECORD
 
-    def __init__(self, date: dt.date, habit_name: str, value: bool | float):
-        super().__init__(date, habit_name)
+    def __init__(
+        self, date: dt.date, habit_name: str, lineno: int, value: bool | float
+    ):
+        super().__init__(date, habit_name, lineno)
         self.value = value
 
     def __eq__(self, other):

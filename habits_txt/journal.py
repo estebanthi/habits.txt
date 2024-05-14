@@ -19,9 +19,16 @@ def get_state_at_date(
     :param date: Date to check.
     :return: Tracked habits, records.
     """
-    directives, errors = parser.parse_file(journal_file)
-    _log_errors(errors)
-    return builder.get_state_at_date(directives, date)
+    directives, parse_errors = parser.parse_file(journal_file)
+    _log_errors(parse_errors)
+    try:
+        tracked_habits, records = builder.get_state_at_date(directives, date)
+    except exceptions.ConsistencyError as e:
+        logging.error(e)
+        logging.error("Cannot continue due to consistency errors")
+        exit(1)
+
+    return tracked_habits, records
 
 
 def _log_errors(errors: list[str]):

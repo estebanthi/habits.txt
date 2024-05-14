@@ -12,7 +12,7 @@ def _sort_directives(
     """
     Sort the directives by date.
 
-    :param directives: List of directives.
+    :param directives_: List of directives.
     :return: Sorted list of directives.
 
     Example:

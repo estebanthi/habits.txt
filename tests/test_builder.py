@@ -121,6 +121,18 @@ def test_build_habit_from_track_directive():
         "Habit 1", builder.models.Frequency("*", "*", "*")
     )
 
+    directive = builder.directives.TrackDirective(
+        dt.datetime(2024, 1, 1),
+        "Habit 1",
+        1,
+        builder.models.Frequency("*", "*", "*"),
+        True,
+    )
+    habit = builder._build_habit_from_track_directive(directive)
+    assert habit == builder.models.Habit(
+        "Habit 1", builder.models.Frequency("*", "*", "*"), True
+    )
+
 
 def test_build_habit_record_from_record_directive():
     directive = builder.directives.RecordDirective(
@@ -138,7 +150,7 @@ def test_get_records_up_to_date():
         "Habit 1",
         1,
         builder.models.Frequency("*", "*", "*"),
-        False,
+        True,
     )
     directive1 = builder.directives.RecordDirective(
         dt.datetime(2024, 1, 1), "Habit 1", 1, 2.0
@@ -164,7 +176,7 @@ def test_check_record_directive_is_valid():
         dt.datetime(2024, 1, 1), "Habit 1", 1, 2.0
     )
     tracked_habits = {
-        builder.models.Habit("Habit 1", builder.models.Frequency("*", "*", "*"))
+        builder.models.Habit("Habit 1", builder.models.Frequency("*", "*", "*"), True)
     }
     current_records = []
     builder._check_record_directive_is_valid(directive, tracked_habits, current_records)
@@ -178,4 +190,27 @@ def test_check_record_directive_is_valid():
         ]
         builder._check_record_directive_is_valid(
             directive, tracked_habits, current_records
+        )
+
+    with pytest.raises(builder.exceptions.ConsistencyError):
+        tracked_habits = {
+            builder.models.Habit(
+                "Habit 2", builder.models.Frequency("*", "*", "*"), False
+            )
+        }
+        builder._check_record_directive_is_valid(
+            directive, tracked_habits, current_records
+        )
+
+    with pytest.raises(builder.exceptions.ConsistencyError):
+        tracked_habits = {
+            builder.models.Habit(
+                "Habit 1", builder.models.Frequency("*", "*", "*"), True
+            )
+        }
+        record_directive = builder.directives.RecordDirective(
+            dt.datetime(2024, 1, 1), "Habit 1", 1, True
+        )
+        builder._check_record_directive_is_valid(
+            record_directive, tracked_habits, current_records
         )

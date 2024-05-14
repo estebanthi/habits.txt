@@ -140,7 +140,9 @@ def _build_habit_from_track_directive(
     >>> print(habit)
     Habit 1
     """
-    return models.Habit(directive.habit_name, directive.frequency)
+    return models.Habit(
+        directive.habit_name, directive.frequency, directive.is_measurable
+    )
 
 
 def _build_habit_record_from_record_directive(
@@ -228,6 +230,19 @@ def _check_record_directive_is_valid(
             f"Several records of the same habit on the same day: {directive.habit_name}",
             directive,
         )
+
+    for habit in tracked_habits:
+        if habit.name == directive.habit_name:
+            if habit.is_measurable and not isinstance(directive.value, float):
+                raise exceptions.ConsistencyError(
+                    f"Measurable habit with a non-float value: {directive.habit_name}",
+                    directive,
+                )
+            if not habit.is_measurable and not isinstance(directive.value, bool):
+                raise exceptions.ConsistencyError(
+                    f"Non-measurable habit with a non-bool value: {directive.habit_name}",
+                    directive,
+                )
 
 
 def get_state_at_date(

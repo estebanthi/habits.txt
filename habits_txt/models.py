@@ -41,10 +41,12 @@ class Habit:
     Example:
       name: "Sample habit"
       frequency: Frequency("*", "*", "*")
+      is_measurable: False
     """
 
     name: str
     frequency: Frequency
+    is_measurable: bool = False
 
     def __hash__(self):
         return hash(self.name)

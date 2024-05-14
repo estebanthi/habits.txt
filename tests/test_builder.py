@@ -19,27 +19,39 @@ def test_sort_directives():
 
 def test_get_tracked_habits_at_date():
     directive1 = builder.directives.TrackDirective(
-        dt.datetime(2024, 1, 1), "Habit 1", builder.models.Frequency("*", "*", "*")
+        dt.datetime(2024, 1, 1),
+        "Habit 1",
+        builder.models.Frequency("*", "*", "*"),
+        False,
     )
     directive2 = builder.directives.TrackDirective(
-        dt.datetime(2024, 1, 2), "Habit 2", builder.models.Frequency("*", "*", "*")
+        dt.datetime(2024, 1, 2),
+        "Habit 2",
+        builder.models.Frequency("*", "*", "*"),
+        False,
     )
     directive3 = builder.directives.TrackDirective(
-        dt.datetime(2024, 1, 3), "Habit 3", builder.models.Frequency("*", "*", "*")
+        dt.datetime(2024, 1, 3),
+        "Habit 3",
+        builder.models.Frequency("*", "*", "*"),
+        False,
     )
 
     tracked_habits = builder._get_tracked_habits_at_date(
         [directive1, directive2, directive3], dt.datetime(2024, 1, 2)
     )
     assert tracked_habits == {
-        builder.models.Habit("Habit 1", builder.models.Frequency("*", "*", "*")),
-        builder.models.Habit("Habit 2", builder.models.Frequency("*", "*", "*")),
+        builder.models.Habit("Habit 1", builder.models.Frequency("*", "*", "*"), False),
+        builder.models.Habit("Habit 2", builder.models.Frequency("*", "*", "*"), False),
     }
 
 
 def test_check_track_directive_is_valid():
     directive = builder.directives.TrackDirective(
-        dt.datetime(2024, 1, 1), "Habit 1", builder.models.Frequency("*", "*", "*")
+        dt.datetime(2024, 1, 1),
+        "Habit 1",
+        builder.models.Frequency("*", "*", "*"),
+        False,
     )
     current_state = {
         builder.models.Habit("Habit 2", builder.models.Frequency("*", "*", "*"))
@@ -47,7 +59,10 @@ def test_check_track_directive_is_valid():
     builder._check_track_directive_is_valid(directive, current_state)
 
     directive = builder.directives.TrackDirective(
-        dt.datetime(2024, 1, 1), "Habit 1", builder.models.Frequency("*", "*", "*")
+        dt.datetime(2024, 1, 1),
+        "Habit 1",
+        builder.models.Frequency("*", "*", "*"),
+        False,
     )
     current_state = {
         builder.models.Habit("Habit 1", builder.models.Frequency("*", "*", "*"))
@@ -86,7 +101,10 @@ def test_remove_habit_from_state():
 
 def test_build_habit_from_track_directive():
     directive = builder.directives.TrackDirective(
-        dt.datetime(2024, 1, 1), "Habit 1", builder.models.Frequency("*", "*", "*")
+        dt.datetime(2024, 1, 1),
+        "Habit 1",
+        builder.models.Frequency("*", "*", "*"),
+        False,
     )
     habit = builder._build_habit_from_track_directive(directive)
     assert habit == builder.models.Habit(
@@ -106,7 +124,10 @@ def test_build_habit_record_from_record_directive():
 
 def test_get_records_up_to_date():
     track_directive = builder.directives.TrackDirective(
-        dt.datetime(2024, 1, 1), "Habit 1", builder.models.Frequency("*", "*", "*")
+        dt.datetime(2024, 1, 1),
+        "Habit 1",
+        builder.models.Frequency("*", "*", "*"),
+        False,
     )
     directive1 = builder.directives.RecordDirective(
         dt.datetime(2024, 1, 1), "Habit 1", 2.0

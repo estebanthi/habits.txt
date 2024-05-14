@@ -74,7 +74,11 @@ def _parse_directive(directive_line: str) -> directives.Directive | None:
 
         if directive_type == directives.DirectiveType.TRACK:
             frequency = _parse_frequency(directive_line)
-            return directives.TrackDirective(date, habit_name, frequency)
+            is_measurable = (
+                re.search(rf"{defaults.MEASURABLE_KEYWORD}$", directive_line)
+                is not None
+            )
+            return directives.TrackDirective(date, habit_name, frequency, is_measurable)
         elif directive_type == directives.DirectiveType.UNTRACK:
             return directives.UntrackDirective(date, habit_name)
         elif directive_type == directives.DirectiveType.RECORD:

@@ -32,7 +32,21 @@ def test_parse_directive(monkeypatch):
     directive_line = "2024-01-01 track 'Sample habit' (* * *)"
     directive = parser._parse_directive(directive_line)
     assert directive == parser.directives.TrackDirective(
-        dt.date(2024, 1, 1), "Sample habit", parser.models.Frequency("*", "*", "*")
+        dt.date(2024, 1, 1),
+        "Sample habit",
+        parser.models.Frequency("*", "*", "*"),
+        False,
+    )
+
+    directive_line = (
+        f"2024-01-01 track 'Sample habit' (* * *) {parser.defaults.MEASURABLE_KEYWORD}"
+    )
+    directive = parser._parse_directive(directive_line)
+    assert directive == parser.directives.TrackDirective(
+        dt.date(2024, 1, 1),
+        "Sample habit",
+        parser.models.Frequency("*", "*", "*"),
+        True,
     )
 
     directive_line = "2024-01-02 'Sample habit' yes"

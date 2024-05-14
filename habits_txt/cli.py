@@ -88,6 +88,15 @@ def filter(file, start, end, name):
         click.echo(f"{defaults.COMMENT_CHAR} No records found")
 
 
+@cli.command()
+@click.argument("file", type=click.File("r"))
+def edit(file):
+    """
+    Edit FILE.
+    """
+    click.edit(filename=file.name)
+
+
 @cli.group()
 def config():
     config_.setup()
@@ -126,8 +135,8 @@ def get():
         click.echo(f.read())
 
 
-@config.command()
-def edit():
+@config.command(name="edit")
+def config_edit():
     """
     Edit configuration settings.
     """

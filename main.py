@@ -18,6 +18,9 @@ def main():
             "filter": {
                 "file": config_.get("journal", "CLI"),
             },
+            "edit": {
+                "file": config_.get("journal", "CLI"),
+            },
         },
     )
 

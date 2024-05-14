@@ -247,12 +247,12 @@ def _parse_value(directive_line: str) -> bool | float:
 
     The value is ALWAYS the last part of a record directive.
 
-    :param value_str: Value string.
+    :param directive_line: Directive line.
     :return: Parsed value.
 
     Example:
-    >>> value_str = "yes"
-    >>> value = _parse_value(value_str)
+    >>> directive_line = '2024-01-02 "Sample habit" yes'
+    >>> value = _parse_value(directive_line)
     >>> print(value)
     True
     """

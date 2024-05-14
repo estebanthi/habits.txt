@@ -2,12 +2,24 @@ import logging
 import sys
 
 import habits_txt.cli as cli
+import habits_txt.config as config_
 
 
 def main():
     logging.basicConfig(level=logging.INFO, format="%(message)s")
 
-    cli.cli(sys.argv[1:], default_map={})
+    config_.setup()
+    cli.cli(
+        sys.argv[1:],
+        default_map={
+            "fill": {
+                "file": config_.get("journal", "CLI"),
+            },
+            "filter": {
+                "file": config_.get("journal", "CLI"),
+            },
+        },
+    )
 
 
 if __name__ == "__main__":

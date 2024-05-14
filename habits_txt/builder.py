@@ -25,15 +25,6 @@ def _sort_directives(
     return sorted(directives_, key=lambda directive_: directive_.date)
 
 
-"""
-checks:
-- each untrack directive has a corresponding track directive before it
-- each record directive has a corresponding track directive before it
-- there can't be several tracked habits with the same name
-- there can't be several records of the same habit on the same day
-"""
-
-
 def _get_tracked_habits_at_date(
     directives_: list[directives.Directive], date: dt.date
 ) -> set[models.Habit]:
@@ -88,7 +79,8 @@ def _check_track_directive_is_valid(
     """
     if directive.habit_name in {habit.name for habit in tracked_habits}:
         raise exceptions.ConsistencyError(
-            f"Several tracked habits with the same name: {directive.habit_name}"
+            f"Several tracked habits with the same name: {directive.habit_name}",
+            directive,
         )
 
 
@@ -108,7 +100,8 @@ def _check_untrack_directive_is_valid(
     """
     if directive.habit_name not in {habit.name for habit in tracked_habits}:
         raise exceptions.ConsistencyError(
-            f"Untracked habit without a corresponding track directive: {directive.habit_name}"
+            f"Untracked habit without a corresponding track directive: {directive.habit_name}",
+            directive,
         )
 
 
@@ -223,7 +216,8 @@ def _check_record_directive_is_valid(
     """
     if directive.habit_name not in {habit.name for habit in tracked_habits}:
         raise exceptions.ConsistencyError(
-            f"Recorded habit without a corresponding track directive: {directive.habit_name}"
+            f"Recorded habit without a corresponding track directive: {directive.habit_name}",
+            directive,
         )
 
     if any(
@@ -231,7 +225,8 @@ def _check_record_directive_is_valid(
         for record in records
     ):
         raise exceptions.ConsistencyError(
-            f"Several records of the same habit on the same day: {directive.habit_name}"
+            f"Several records of the same habit on the same day: {directive.habit_name}",
+            directive,
         )
 
 

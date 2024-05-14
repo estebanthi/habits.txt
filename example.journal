@@ -1,5 +1,5 @@
 2024-01-01 track "Reading" (* * *)
-2024-01-01 track "Weight" (* * *)
+2024-01-01 track "Weight" (* * *) measurable
 
 2024-01-01 record "Reading" yes
 2024-01-01 record "Weight"  70

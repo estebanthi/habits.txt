@@ -13,9 +13,9 @@ It means with habits.txt, you can track habits for a specific period of time. Wh
 
 A habit is defined by a frequency, else it's called a task. The minimum frequency supported by habits.txt is daily (it doesn't support intra-day habits).
 
-### Boolean or Numeric
+### Boolean or Measurable
 
-A habit can be boolean or numeric. A boolean habit is either done or not done. A numeric habit is a value, like the number of pages read in a day.
+A habit can be boolean or measurable. A boolean habit is either done or not done. A measurable habit has a value.
 
 ## Format
 
@@ -40,6 +40,7 @@ You can't add comments at the end of a line.
 ### track
 
 To start tracking a habit, you use the `track` directive and specify the frequency of the habit enclosed in parentheses.
+Optionally, you can make the habit measurable by specifying the "measurable" keyword.
 
 The frequency follows a simplified [cron](https://en.wikipedia.org/wiki/Cron) syntax, omitting the minute and the hour.
 
@@ -47,7 +48,7 @@ Example:
 
 ```
 2024-01-01 track "Read 5 pages a day" (* * *)
-2024-01-01 track "Exercise" (* * 1,3,5)
+2024-01-01 track "Exercise" (* * 1,3,5) measurable
 ```
 
 ### untrack

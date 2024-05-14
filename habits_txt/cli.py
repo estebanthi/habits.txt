@@ -90,12 +90,16 @@ def filter(file, start, end, name):
 
 @cli.group()
 def config():
-    pass
+    config_.setup()
 
 
 @config.group()
 def set():
-    pass
+    try:
+        config_.validate()
+    except ValueError as e:
+        click.echo(e)
+        raise click.Abort()
 
 
 @set.command()
@@ -113,5 +117,18 @@ def get():
     """
     Get all configuration settings.
     """
+    try:
+        config_.validate()
+    except ValueError as e:
+        click.echo(e)
+        raise click.Abort()
     with open(defaults.APPDATA_PATH + "/config.ini") as f:
         click.echo(f.read())
+
+
+@config.command()
+def edit():
+    """
+    Edit configuration settings.
+    """
+    click.edit(filename=defaults.APPDATA_PATH + "/config.ini")

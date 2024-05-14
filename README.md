@@ -1,6 +1,22 @@
 # habits.txt
 
+[![PyPI version](https://badge.fury.io/py/habits.txt.svg)](https://badge.fury.io/py/habits.txt)
+
 habits.txt is a plain text habit tracker.
+
+[Installation](#installation) | [Concepts](#concepts) | [Format](#format) | [Directives](#directives)
+
+## Installation
+
+```bash
+pip install habits.txt
+```
+
+You can then use the CLI with:
+
+```bash
+hbtxt --help
+```
 
 ## Concepts
 

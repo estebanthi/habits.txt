@@ -91,6 +91,67 @@ def filter(file, start, end, name):
 
 @cli.command()
 @click.argument("file", type=click.File("r"))
+@click.option(
+    "-s",
+    "--start",
+    type=click.DateTime(formats=["%Y-%m-%d"]),
+    callback=lambda ctx, param, value: value.date() if value else None,
+    help="Start date",
+)
+@click.option(
+    "-e",
+    "--end",
+    type=click.DateTime(formats=["%Y-%m-%d"]),
+    default=dt.date.today().strftime(defaults.DATE_FMT),
+    callback=lambda ctx, param, value: value.date(),
+    help="End date",
+)
+@click.option("-n", "--name", help="Filter by habit name")
+def info(file, start, end, name):
+    """
+    Get information about habit records using FILE.
+    """
+    habit_completion_infos = journal_.info(file.name, start, end, name)
+    if habit_completion_infos:
+        for habit_completion_info in habit_completion_infos:
+            click.echo(
+                f"{habit_completion_info.habit.name} ({habit_completion_info.start_date} - "
+                f"{habit_completion_info.end_date}):"
+            )
+            click.echo(f"  Total records in journal: {habit_completion_info.n_records}")
+            click.echo(
+                f"  Total records expected: {habit_completion_info.n_records_expected}"
+            )
+            click.echo(
+                f"  Missing records: "
+                f"{habit_completion_info.n_records_expected - habit_completion_info.n_records}"
+            )
+            value_str = (
+                "Average value"
+                if habit_completion_info.habit.is_measurable
+                else "Completion rate"
+            )
+
+            def process_average(x):
+                return (
+                    round(x, 2)
+                    if habit_completion_info.habit.is_measurable
+                    else str(x * 100) + "%"
+                )
+
+            click.echo(
+                f"  {value_str} (among all records): {process_average(habit_completion_info.average_total)}"
+            )
+            click.echo(
+                f"  {value_str} (among present records): "
+                f"{process_average(habit_completion_info.average_present)}"
+            )
+    else:
+        click.echo(f"{defaults.COMMENT_CHAR} No records found")
+
+
+@cli.command()
+@click.argument("file", type=click.File("r"))
 def edit(file):
     """
     Edit FILE.

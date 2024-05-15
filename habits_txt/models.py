@@ -115,7 +115,8 @@ class HabitCompletionInfo:
     habit: Habit
     n_records: int
     n_records_expected: int
-    average: float
+    average_total: float
+    average_present: float
     start_date: dt.date
     end_date: dt.date | None
 

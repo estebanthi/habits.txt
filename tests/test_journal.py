@@ -244,3 +244,30 @@ def test_filter(monkeypatch):
 def test_check(monkeypatch):
     monkeypatch.setattr(journal, "get_state_at_date", lambda x, y: ([], [], []))
     assert journal.check("journal_file", dt.date(2021, 1, 1)) is True
+
+
+def test_info(monkeypatch):
+    habit1 = models.Habit("habit1", models.Frequency("*", "*", "*"))
+    record11 = models.HabitRecord(dt.date(2021, 1, 1), "habit1", True)
+    record12 = models.HabitRecord(dt.date(2021, 1, 2), "habit1", True)
+    tracking_start_date1 = dt.date(2021, 1, 1)
+    tracking_end_date1 = dt.date(2021, 1, 3)
+
+    habit_record_matches1 = models.HabitRecordMatch(
+        habit1, [record11, record12], tracking_start_date1, tracking_end_date1
+    )
+    monkeypatch.setattr(
+        journal,
+        "get_state_at_date",
+        lambda x, y: ([habit1], [record11, record12], [habit_record_matches1]),
+    )
+
+    info = journal.info("journal_file", None, dt.date(2021, 1, 3), None)
+
+    assert info[0].habit == habit1
+    assert info[0].n_records == 2
+    assert info[0].n_records_expected == 3
+    assert info[0].average_total == 0.6666666666666666
+    assert info[0].average_present == 1.0
+    assert info[0].start_date == tracking_start_date1
+    assert info[0].end_date == tracking_end_date1

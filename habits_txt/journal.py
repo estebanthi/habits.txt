@@ -186,3 +186,59 @@ def check(journal_file: str, date: dt.date) -> bool:
     """
     get_state_at_date(journal_file, date)
     return True
+
+
+def info(
+    journal_file: str,
+    start_date: dt.date | None,
+    end_date: dt.date,
+    habit_name: str | None,
+) -> list[models.HabitCompletionInfo]:
+    """
+    Get information about the completion of habits.
+
+    :param journal_file: Path to the journal file.
+    :param start_date: Start date.
+    :param end_date: End date.
+    :param habit_name: Habit name.
+    :return: Information about the completion of habits.
+    """
+    tracked_habits, records, habits_records_matches = _filter_state(
+        journal_file, start_date, end_date, habit_name
+    )
+    completion_infos = []
+    for match in habits_records_matches:
+        effective_start_date = match.tracking_start_date
+        if start_date and start_date > effective_start_date:
+            effective_start_date = start_date
+
+        effective_end_date = end_date
+        if match.tracking_end_date and match.tracking_end_date < end_date:
+            effective_end_date = match.tracking_end_date
+
+        n_records = len(match.habit_records)
+        n_records_expected = match.habit.frequency.get_n_dates(
+            effective_start_date, effective_end_date
+        )
+
+        non_none_values = [
+            record.value for record in match.habit_records if record.value
+        ]
+        sum_values = sum(float(value) for value in non_none_values)
+
+        average_total = sum_values / n_records_expected if n_records_expected else 0
+
+        average_present = sum_values if n_records else 0
+
+        completion_info = models.HabitCompletionInfo(
+            match.habit,
+            n_records,
+            n_records_expected,
+            average_total,
+            average_present,
+            effective_start_date,
+            effective_end_date,
+        )
+        completion_infos.append(completion_info)
+
+    return completion_infos

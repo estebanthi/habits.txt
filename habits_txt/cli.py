@@ -258,7 +258,7 @@ def _style_completion_info(habit_completion_info: models_.HabitCompletionInfo) -
                 fg="bright_red",
             ),
             click.style(
-                "  Average value (among all records):",
+                "  Average value (among expected records):",
                 fg="magenta",
             )
             + click.style(
@@ -266,7 +266,7 @@ def _style_completion_info(habit_completion_info: models_.HabitCompletionInfo) -
                 fg="bright_magenta",
             ),
             click.style(
-                "  Average value (among present records):",
+                "  Average value (among written records):",
                 fg="magenta",
             )
             + click.style(

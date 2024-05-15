@@ -44,3 +44,13 @@ def test_habit_record():
     record = models.HabitRecord(dt.date(2024, 1, 1), "habit1", False)
     assert not record.is_complete
     assert record._str_value() == models.defaults.BOOLEAN_FALSE
+
+    record = models.HabitRecord(dt.date(2024, 1, 1), "habit1", True)
+    assert record.is_complete
+    assert record._str_value() == models.defaults.BOOLEAN_TRUE
+
+
+def test_str_habit_record(monkeypatch):
+    monkeypatch.setattr(models.HabitRecord, "_str_value", lambda self: "2.0")
+    record = models.HabitRecord(dt.date(2024, 1, 1), "habit1", 2.0)
+    assert str(record) == '2024-01-01 "habit1" 2.0'

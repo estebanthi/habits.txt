@@ -32,6 +32,25 @@ class Frequency:
         cron = croniter.croniter(cron_str, dt.datetime.combine(date, dt.time()))
         return cron.get_next(dt.datetime).date()
 
+    def get_n_dates(self, start_date: dt.date, end_date: dt.date) -> int:
+        """
+        Get the number of dates between two dates based on the frequency.
+
+        :param start_date: Start date.
+        :param end_date: End date.
+        :return: Number of dates.
+        """
+        n_dates = 1
+        date = start_date
+        while date <= end_date:
+            date = self.get_next_date(date)
+            if date <= end_date:
+                n_dates += 1
+        return n_dates
+
+    def __repr__(self) -> str:
+        return f"{self.day} {self.month} {self.day_of_week}"
+
 
 @dataclass
 class Habit:
@@ -69,7 +88,7 @@ class HabitRecord:
 
     @property
     def is_complete(self) -> bool:
-        return bool(self.value)
+        return self.value is not None
 
     def __str__(self) -> str:
         return (
@@ -85,3 +104,30 @@ class HabitRecord:
         elif self.value is None:
             return ""
         return str(self.value)
+
+
+@dataclass
+class HabitCompletionInfo:
+    """
+    Information about the completion of a habit.
+    """
+
+    habit: Habit
+    n_records: int
+    n_records_expected: int
+    average_total: float
+    average_present: float
+    start_date: dt.date
+    end_date: dt.date | None
+
+
+@dataclass
+class HabitRecordMatch:
+    """
+    Match between a habit and its records.
+    """
+
+    habit: Habit
+    habit_records: list[HabitRecord]
+    tracking_start_date: dt.date
+    tracking_end_date: dt.date | None

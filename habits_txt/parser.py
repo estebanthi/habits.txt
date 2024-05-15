@@ -68,28 +68,23 @@ def _parse_directive(directive_line: str, lineno: int) -> directives.Directive |
     if not directive_line or directive_line.startswith(defaults.COMMENT_CHAR):
         return None
     directive_line = re.sub(r"\s+", " ", directive_line)  # Remove extra spaces
-    try:
-        date = _parse_date(directive_line)
-        directive_type = _parse_directive_type(directive_line)
-        habit_name = _parse_habit_name(directive_line)
+    date = _parse_date(directive_line)
+    directive_type = _parse_directive_type(directive_line)
+    habit_name = _parse_habit_name(directive_line)
 
-        if directive_type == directives.DirectiveType.TRACK:
-            frequency = _parse_frequency(directive_line)
-            is_measurable = (
-                re.search(rf"{defaults.MEASURABLE_KEYWORD}$", directive_line)
-                is not None
-            )
-            return directives.TrackDirective(
-                date, habit_name, lineno, frequency, is_measurable
-            )
-        elif directive_type == directives.DirectiveType.UNTRACK:
-            return directives.UntrackDirective(date, habit_name, lineno)
-        elif directive_type == directives.DirectiveType.RECORD:
-            value = _parse_value(directive_line)
-            return directives.RecordDirective(date, habit_name, lineno, value)
-
-    except IndexError:
-        raise exceptions.ParseError(f"Invalid directive format: {directive_line}")
+    if directive_type == directives.DirectiveType.TRACK:
+        frequency = _parse_frequency(directive_line)
+        is_measurable = (
+            re.search(rf"{defaults.MEASURABLE_KEYWORD}$", directive_line) is not None
+        )
+        return directives.TrackDirective(
+            date, habit_name, lineno, frequency, is_measurable
+        )
+    elif directive_type == directives.DirectiveType.UNTRACK:
+        return directives.UntrackDirective(date, habit_name, lineno)
+    elif directive_type == directives.DirectiveType.RECORD:
+        value = _parse_value(directive_line)
+        return directives.RecordDirective(date, habit_name, lineno, value)
 
     return None
 

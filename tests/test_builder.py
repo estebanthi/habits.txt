@@ -48,6 +48,17 @@ def test_get_tracked_habits_at_date():
         builder.models.Habit("Habit 2", builder.models.Frequency("*", "*", "*"), False),
     }
 
+    directive4 = builder.directives.UntrackDirective(
+        dt.datetime(2024, 1, 4), "Habit 2", 2
+    )
+    tracked_habits = builder._get_tracked_habits_at_date(
+        [directive1, directive2, directive3, directive4], dt.datetime(2024, 1, 4)
+    )
+    assert tracked_habits == {
+        builder.models.Habit("Habit 1", builder.models.Frequency("*", "*", "*"), False),
+        builder.models.Habit("Habit 3", builder.models.Frequency("*", "*", "*"), False),
+    }
+
 
 def test_check_track_directive_is_valid():
     directive = builder.directives.TrackDirective(
@@ -214,3 +225,171 @@ def test_check_record_directive_is_valid():
         builder._check_record_directive_is_valid(
             record_directive, tracked_habits, current_records
         )
+
+    with pytest.raises(builder.exceptions.ConsistencyError):
+        tracked_habits = {
+            builder.models.Habit(
+                "Habit 1", builder.models.Frequency("*", "*", "*"), True
+            )
+        }
+        record_directive = builder.directives.RecordDirective(
+            dt.datetime(2024, 1, 1), "Habit 1", 1, True
+        )
+
+        current_records = []
+
+        builder._check_record_directive_is_valid(
+            record_directive, tracked_habits, current_records
+        )
+
+    with pytest.raises(builder.exceptions.ConsistencyError):
+        tracked_habits = {
+            builder.models.Habit(
+                "Habit 1", builder.models.Frequency("*", "*", "*"), False
+            )
+        }
+        record_directive = builder.directives.RecordDirective(
+            dt.datetime(2024, 1, 1), "Habit 1", 1, 10.0
+        )
+
+        current_records = []
+
+        builder._check_record_directive_is_valid(
+            record_directive, tracked_habits, current_records
+        )
+
+
+def test_get_state_at_date():
+    directive1 = builder.directives.TrackDirective(
+        dt.date(2024, 1, 1),
+        "Habit 1",
+        1,
+        builder.models.Frequency("*", "*", "*"),
+        False,
+    )
+    directive2 = builder.directives.TrackDirective(
+        dt.date(2024, 1, 2),
+        "Habit 2",
+        2,
+        builder.models.Frequency("*", "*", "*"),
+        False,
+    )
+    directive3 = builder.directives.TrackDirective(
+        dt.date(2024, 1, 3),
+        "Habit 3",
+        3,
+        builder.models.Frequency("*", "*", "*"),
+        False,
+    )
+    directive4 = builder.directives.UntrackDirective(dt.date(2024, 1, 4), "Habit 2", 2)
+    directive5 = builder.directives.RecordDirective(
+        dt.date(2024, 1, 1), "Habit 1", 1, False
+    )
+
+    directives = [directive1, directive2, directive3, directive4, directive5]
+    tracked_habits, records, habits_records_matches = builder.get_state_at_date(
+        directives, dt.date(2024, 1, 2)
+    )
+    assert tracked_habits == {
+        builder.models.Habit("Habit 1", builder.models.Frequency("*", "*", "*"), False),
+        builder.models.Habit("Habit 2", builder.models.Frequency("*", "*", "*"), False),
+    }
+    assert records == [
+        builder.models.HabitRecord(dt.date(2024, 1, 1), "Habit 1", False)
+    ]
+    assert habits_records_matches == [
+        builder.models.HabitRecordMatch(
+            builder.models.Habit("Habit 1", builder.models.Frequency("*", "*", "*")),
+            [builder.models.HabitRecord(dt.date(2024, 1, 1), "Habit 1", False)],
+            dt.date(2024, 1, 1),
+            None,
+        ),
+        builder.models.HabitRecordMatch(
+            builder.models.Habit("Habit 2", builder.models.Frequency("*", "*", "*")),
+            [],
+            dt.date(2024, 1, 2),
+            None,
+        ),
+    ]
+
+    tracked_habits, records, track_untrack_matches = builder.get_state_at_date(
+        directives, dt.date(2024, 1, 4)
+    )
+    assert tracked_habits == {
+        builder.models.Habit("Habit 1", builder.models.Frequency("*", "*", "*"), False),
+        builder.models.Habit("Habit 3", builder.models.Frequency("*", "*", "*"), False),
+    }
+    assert records == [
+        builder.models.HabitRecord(dt.date(2024, 1, 1), "Habit 1", False)
+    ]
+    assert track_untrack_matches == [
+        builder.models.HabitRecordMatch(
+            builder.models.Habit("Habit 1", builder.models.Frequency("*", "*", "*")),
+            [builder.models.HabitRecord(dt.date(2024, 1, 1), "Habit 1", False)],
+            dt.date(2024, 1, 1),
+            None,
+        ),
+        builder.models.HabitRecordMatch(
+            builder.models.Habit("Habit 2", builder.models.Frequency("*", "*", "*")),
+            [],
+            dt.date(2024, 1, 2),
+            dt.date(2024, 1, 4),
+        ),
+        builder.models.HabitRecordMatch(
+            builder.models.Habit("Habit 3", builder.models.Frequency("*", "*", "*")),
+            [],
+            dt.date(2024, 1, 3),
+            None,
+        ),
+    ]
+
+
+def test_get_track_untrack_record_matches_at_date():
+    directive1 = builder.directives.TrackDirective(
+        dt.datetime(2024, 1, 1),
+        "Habit 1",
+        1,
+        builder.models.Frequency("*", "*", "*"),
+        False,
+    )
+    directive2 = builder.directives.TrackDirective(
+        dt.datetime(2024, 1, 2),
+        "Habit 2",
+        2,
+        builder.models.Frequency("*", "*", "*"),
+        False,
+    )
+    directive3 = builder.directives.UntrackDirective(
+        dt.datetime(2024, 1, 3),
+        "Habit 2",
+        2,
+    )
+    directive4 = builder.directives.TrackDirective(
+        dt.datetime(2024, 1, 4),
+        "Habit 3",
+        3,
+        builder.models.Frequency("*", "*", "*"),
+        False,
+    )
+    directive_5 = builder.directives.RecordDirective(
+        dt.datetime(2024, 1, 2), "Habit 1", 1, 2.0
+    )
+    directive_6 = builder.directives.RecordDirective(
+        dt.datetime(2024, 1, 3), "Habit 1", 1, 3.0
+    )
+    directive_7 = builder.directives.RecordDirective(
+        dt.datetime(2024, 1, 4), "Habit 1", 1, 4.0
+    )
+
+    assert builder.get_track_untrack_record_matches_at_date(
+        [
+            directive1,
+            directive2,
+            directive3,
+            directive4,
+            directive_5,
+            directive_6,
+            directive_7,
+        ],
+        dt.datetime(2024, 1, 3),
+    ) == [(directive1, None, [directive_5, directive_6]), (directive2, directive3, [])]

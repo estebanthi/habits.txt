@@ -247,25 +247,124 @@ def _check_record_directive_is_valid(
 
 def get_state_at_date(
     directives_: list[directives.Directive], date: dt.date
-) -> typing.Tuple[set[models.Habit], list[models.HabitRecord]]:
+) -> typing.Tuple[
+    set[models.Habit],
+    list[models.HabitRecord],
+    list[models.HabitRecordMatch],
+]:
     """
     Get the state of the habits at a given date.
 
     :param directives_: List of directives.
     :param date: Date to check.
-    :return: List of tracked habits, list of records.
+    :return: List of tracked habits, list of records, list of matches.
 
     Example:
     >>> directive1 = directives.TrackDirective(dt.datetime(2024, 1, 1), "Habit 1", models.Frequency("*", "*", "*"))
     >>> directive2 = directives.TrackDirective(dt.datetime(2024, 1, 2), "Habit 2", models.Frequency("*", "*", "*"))
     >>> directive3 = directives.RecordDirective(dt.datetime(2024, 1, 1), "Habit 1", False)
-    >>> tracked_habits, records = get_state_at_date([directive1, directive2, directive3], dt.datetime(2024, 1, 1))
+    >>> tracked_habits, records, habits_records_matches = \
+    get_state_at_date([directive1, directive2, directive3], dt.datetime(2024, 1, 1))
     >>> print(tracked_habits)
     [Habit 1]
     >>> print(records)
     [HabitRecord(Habit 1, False)]
+    >>> print(habits_records_matches)
+    [(Habit 1, [HabitRecord(Habit 1, False)], 2024-01-01, None)]
     """
     tracked_habits = _get_tracked_habits_at_date(directives_, date)
     records = _get_records_up_to_date(directives_, date)
 
-    return tracked_habits, records
+    track_untrack_record_matches = get_track_untrack_record_matches_at_date(
+        directives_, date
+    )
+    habits_records_matches = [
+        models.HabitRecordMatch(
+            habit=_build_habit_from_track_directive(track_directive),
+            habit_records=[
+                _build_habit_record_from_record_directive(record_directive)
+                for record_directive in record_directives
+            ],
+            tracking_start_date=track_directive.date,
+            tracking_end_date=(
+                untrack_directive.date if untrack_directive is not None else None
+            ),
+        )
+        for track_directive, untrack_directive, record_directives in track_untrack_record_matches
+    ]
+
+    return tracked_habits, records, habits_records_matches
+
+
+def get_track_untrack_record_matches_at_date(
+    directives_: list[directives.Directive], date: dt.date
+) -> list[
+    typing.Tuple[
+        directives.TrackDirective,
+        directives.UntrackDirective | None,
+        list[directives.RecordDirective],
+    ]
+]:
+    """
+    Get the matches of track, untrack, and record directives at a given date.
+
+    :param directives_: List of directives.
+    :param date: Date to check.
+    :return: List of matches.
+
+    Example:
+    >>> directive1 = directives.TrackDirective(dt.datetime(2024, 1, 1), "Habit 1", models.Frequency("*", "*", "*"))
+    >>> directive2 = directives.UntrackDirective(dt.datetime(2024, 1, 2), "Habit 1")
+    >>> directive3 = directives.TrackDirective(dt.datetime(2024, 1, 2), "Habit 2", models.Frequency("*", "*", "*"))
+    >>> directive4 = directives.RecordDirective(dt.datetime(2024, 1, 1), "Habit 1", False)
+    >>> matches = get_track_untrack_record_matches_at_date(\
+    [directive1, directive2, directive3, directive4], dt.datetime(2024, 2, 1))
+    >>> print(matches)
+    [(directive1, directive2, [directive4]), (directive3, None, [])]
+    """
+    directives_before_date = [
+        directive for directive in directives_ if directive.date <= date
+    ]
+    sorted_directives = _sort_directives(directives_before_date)
+
+    track_directives: list[directives.TrackDirective] = []
+    untrack_directives: list[directives.UntrackDirective] = []
+    matches: list[
+        typing.Tuple[directives.TrackDirective, directives.UntrackDirective | None]
+    ] = []
+    for directive in sorted_directives:
+        if isinstance(directive, directives.TrackDirective):
+            track_directives.append(directive)
+        elif isinstance(directive, directives.UntrackDirective):
+            untrack_directives.append(directive)
+
+    for track_directive in track_directives:
+        match = next(
+            (
+                untrack_directive
+                for untrack_directive in untrack_directives
+                if untrack_directive.habit_name == track_directive.habit_name
+            ),
+            None,
+        )
+        matches.append((track_directive, match))
+
+    all_matches: list[
+        typing.Tuple[
+            directives.TrackDirective,
+            directives.UntrackDirective | None,
+            list[directives.RecordDirective],
+        ]
+    ] = []
+    for track_directive, untrack_directive in matches:
+        start_date = track_directive.date
+        end_date = untrack_directive.date if untrack_directive is not None else date
+        record_directives = [
+            directive
+            for directive in directives_
+            if isinstance(directive, directives.RecordDirective)
+            and directive.habit_name == track_directive.habit_name
+            and start_date <= directive.date <= end_date
+        ]
+        all_matches.append((track_directive, untrack_directive, record_directives))
+    return all_matches

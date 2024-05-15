@@ -10,26 +10,30 @@ import habits_txt.parser as parser
 import habits_txt.records_query as records_query
 
 
-def get_state_at_date(
-    journal_file: str, date: dt.date
-) -> typing.Tuple[set[models.Habit], list[models.HabitRecord]]:
+def get_state_at_date(journal_file: str, date: dt.date) -> typing.Tuple[
+    set[models.Habit],
+    list[models.HabitRecord],
+    list[models.HabitRecordMatch],
+]:
     """
     Get the state of the habits at a given date.
 
     :param journal_file: Path to the journal file.
     :param date: Date to check.
-    :return: Tracked habits, records.
+    :return: Tracked habits, records, matches between habits and records.
     """
     directives, parse_errors = parser.parse_file(journal_file)
     _log_errors(parse_errors)
     try:
-        tracked_habits, records = builder.get_state_at_date(directives, date)
+        tracked_habits, records, habits_records_matches = builder.get_state_at_date(
+            directives, date
+        )
     except exceptions.ConsistencyError as e:
         logging.error(e)
         logging.error("Cannot continue due to consistency errors")
         exit(1)
 
-    return tracked_habits, records
+    return tracked_habits, records, habits_records_matches
 
 
 def _log_errors(errors: list[str]):
@@ -54,7 +58,9 @@ def fill_day(
     :return: Journal file.
     """
     records_fill = []
-    tracked_habits, records = get_state_at_date(journal_file, date)
+    tracked_habits, records, habits_records_matches = get_state_at_date(
+        journal_file, date
+    )
     if not tracked_habits:
         logging.info(f"{defaults.COMMENT_CHAR} No habits tracked")
         return []
@@ -91,6 +97,67 @@ def fill_day(
     return records_fill
 
 
+def _filter_state(
+    journal_file: str,
+    start_date: dt.date | None,
+    end_date: dt.date,
+    habit_name: str | None,
+) -> typing.Tuple[
+    set[models.Habit],
+    list[models.HabitRecord],
+    list[models.HabitRecordMatch],
+]:
+    """
+    Filter state.
+
+    :param journal_file: Path to the journal file.
+    :param start_date: Start date.
+    :param end_date: End date.
+    :param habit_name: Habit name.
+    :return: Filtered state.
+    """
+    tracked_habits, records, habits_records_matches = get_state_at_date(
+        journal_file, end_date
+    )
+    if not start_date:
+        try:
+            start_date = min(record.date for record in records)
+        except ValueError:
+            return set(), [], []
+
+    filtered_tracked_habits = set(
+        [
+            habit
+            for habit in tracked_habits
+            if (not habit_name or habit.name == habit_name)
+        ]
+    )
+
+    filtered_records = [
+        record
+        for record in records
+        if start_date <= record.date <= end_date
+        and (not habit_name or record.habit_name == habit_name)
+    ]
+
+    filtered_habits_records_matches = []
+    for match in habits_records_matches:
+        if match.tracking_start_date > end_date or (
+            match.tracking_end_date and match.tracking_end_date < start_date
+        ):
+            continue
+        if habit_name and match.habit.name != habit_name:
+            continue
+        match.habit_records = [
+            record
+            for record in match.habit_records
+            if start_date <= record.date <= end_date
+        ]
+        filtered_habits_records_matches.append(match)
+
+    return filtered_tracked_habits, filtered_records, filtered_habits_records_matches
+
+
 def filter(
     journal_file: str,
     start_date: dt.date | None,
@@ -106,15 +173,78 @@ def filter(
     :param habit_name: Habit name.
     :return: Filtered records.
     """
-    tracked_habits, records = get_state_at_date(journal_file, end_date)
-    if not start_date:
-        try:
-            start_date = min(record.date for record in records)
-        except ValueError:
-            return []
-    return [
-        record
-        for record in records
-        if start_date <= record.date <= end_date
-        and (not habit_name or record.habit_name == habit_name)
-    ]
+    return _filter_state(journal_file, start_date, end_date, habit_name)[1]
+
+
+def check(journal_file: str, date: dt.date) -> bool:
+    """
+    Check the journal is consistent at a given date.
+
+    :param journal_file: Path to the journal file.
+    :param date: Date to check.
+    :return: If it returns something, it means the journal is consistent.
+    """
+    get_state_at_date(journal_file, date)
+    return True
+
+
+def info(
+    journal_file: str,
+    start_date: dt.date | None,
+    end_date: dt.date,
+    habit_name: str | None,
+) -> list[models.HabitCompletionInfo]:
+    """
+    Get information about the completion of habits.
+
+    :param journal_file: Path to the journal file.
+    :param start_date: Start date.
+    :param end_date: End date.
+    :param habit_name: Habit name.
+    :return: Information about the completion of habits.
+    """
+    tracked_habits, records, habits_records_matches = _filter_state(
+        journal_file, start_date, end_date, habit_name
+    )
+    completion_infos = []
+    for match in habits_records_matches:
+        effective_start_date = match.tracking_start_date
+        if start_date and start_date > effective_start_date:
+            effective_start_date = start_date
+
+        effective_end_date = end_date
+        if match.tracking_end_date and match.tracking_end_date < end_date:
+            effective_end_date = match.tracking_end_date
+
+        n_records = len(match.habit_records)
+        n_records_expected = match.habit.frequency.get_n_dates(
+            effective_start_date, effective_end_date
+        )
+
+        non_none_values = [
+            record.value for record in match.habit_records if record.value
+        ]
+        sum_values = sum(float(value) for value in non_none_values)
+
+        round_decimals = 2
+        average_total = (
+            round(sum_values / n_records_expected, round_decimals)
+            if n_records_expected
+            else 0
+        )
+        average_present = (
+            round(sum_values / n_records, round_decimals) if n_records else 0
+        )
+
+        completion_info = models.HabitCompletionInfo(
+            match.habit,
+            n_records,
+            n_records_expected,
+            average_total,
+            average_present,
+            effective_start_date,
+            effective_end_date,
+        )
+        completion_infos.append(completion_info)
+
+    return completion_infos

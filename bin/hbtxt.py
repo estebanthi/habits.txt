@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import logging
 import sys
 
@@ -18,7 +19,13 @@ def main():
             "filter": {
                 "file": config_.get("journal", "CLI"),
             },
+            "info": {
+                "file": config_.get("journal", "CLI"),
+            },
             "edit": {
+                "file": config_.get("journal", "CLI"),
+            },
+            "check": {
                 "file": config_.get("journal", "CLI"),
             },
         },

@@ -24,7 +24,7 @@ class Directive:
         return self.date == other.date and self.habit_name == other.habit_name
 
     def __repr__(self):
-        return f"{self.directive_type} {self.date} {self.habit_name}"
+        return f'{self.date} {self.directive_type.value} "{self.habit_name}"'
 
 
 class TrackDirective(Directive):
@@ -79,4 +79,13 @@ class RecordDirective(Directive):
         return super().__eq__(other) and self.value == other.value
 
     def __repr__(self):
-        return super().__repr__() + f" {self.value}"
+        return (super().__repr__() + f" {self._str_value()}").strip()
+
+    def _str_value(self) -> str:
+        if self.value is True:
+            return defaults.BOOLEAN_TRUE
+        elif self.value is False:
+            return defaults.BOOLEAN_FALSE
+        elif self.value is None:
+            return ""
+        return str(self.value)

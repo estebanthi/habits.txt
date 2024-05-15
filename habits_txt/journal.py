@@ -118,3 +118,15 @@ def filter(
         if start_date <= record.date <= end_date
         and (not habit_name or record.habit_name == habit_name)
     ]
+
+
+def check(journal_file: str, date: dt.date) -> bool:
+    """
+    Check the journal is consistent at a given date.
+
+    :param journal_file: Path to the journal file.
+    :param date: Date to check.
+    :return: If it returns something, it means the journal is consistent.
+    """
+    get_state_at_date(journal_file, date)
+    return True

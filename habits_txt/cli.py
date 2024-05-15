@@ -141,3 +141,23 @@ def config_edit():
     Edit configuration settings.
     """
     click.edit(filename=defaults.APPDATA_PATH + "/config.ini")
+
+
+@cli.command()
+@click.argument("file", type=click.File("r"))
+@click.option(
+    "-d",
+    "--date",
+    type=click.DateTime(formats=["%Y-%m-%d"]),
+    default=dt.date.today().strftime(defaults.DATE_FMT),
+    callback=lambda ctx, param, value: value.date(),
+    help="Check the journal file is consistent at a given date",
+)
+def check(file, date):
+    """
+    Check the journal file is valid.
+    """
+    is_valid = journal_.check(file.name, date)
+    click.echo(
+        "Journal file is consistent" if is_valid else "Journal file is inconsistent"
+    )

@@ -119,3 +119,8 @@ def test_filter(monkeypatch):
         )
         == []
     )
+
+
+def test_check(monkeypatch):
+    monkeypatch.setattr(journal, "get_state_at_date", lambda x, y: ([], []))
+    assert journal.check("journal_file", dt.date(2021, 1, 1)) is True

@@ -97,6 +97,94 @@ def test_fill_day(monkeypatch):
     assert journal.fill_day("journal_file", dt.date(2021, 1, 1)) == []
 
 
+def test_filter_state(monkeypatch):
+    monkeypatch.setattr(journal, "get_state_at_date", lambda x, y: ([], [], []))
+    assert journal._filter_state("journal_file", None, dt.date(2021, 1, 1), None) == (
+        set(),
+        [],
+        [],
+    )
+
+    tracked_habits = [
+        models.Habit("habit1", models.Frequency("*", "*", "*")),
+        models.Habit("habit2", models.Frequency("*", "*", "*")),
+    ]
+    records = [
+        models.HabitRecord(dt.date(2021, 1, 1), "habit1", True),
+        models.HabitRecord(dt.date(2021, 1, 1), "habit2", True),
+        models.HabitRecord(dt.date(2022, 1, 1), "habit1", True),
+        models.HabitRecord(dt.date(2022, 1, 1), "habit2", True),
+    ]
+    habits_records_matches = [
+        (
+            models.Habit("habit1", models.Frequency("*", "*", "*")),
+            [
+                models.HabitRecord(dt.date(2021, 1, 1), "habit1", True),
+                models.HabitRecord(dt.date(2022, 1, 1), "habit1", True),
+            ],
+        ),
+        (
+            models.Habit("habit2", models.Frequency("*", "*", "*")),
+            [
+                models.HabitRecord(dt.date(2021, 1, 1), "habit2", True),
+                models.HabitRecord(dt.date(2022, 1, 1), "habit2", True),
+            ],
+        ),
+    ]
+    monkeypatch.setattr(
+        journal,
+        "get_state_at_date",
+        lambda x, y: (tracked_habits, records, habits_records_matches),
+    )
+    assert journal._filter_state("journal_file", None, dt.date(2024, 1, 1), None) == (
+        set(tracked_habits),
+        records,
+        habits_records_matches,
+    )
+
+    assert journal._filter_state(
+        "journal_file", None, dt.date(2024, 1, 1), "habit1"
+    ) == (
+        {models.Habit("habit1", models.Frequency("*", "*", "*"))},
+        [
+            models.HabitRecord(dt.date(2021, 1, 1), "habit1", True),
+            models.HabitRecord(dt.date(2022, 1, 1), "habit1", True),
+        ],
+        [
+            (
+                models.Habit("habit1", models.Frequency("*", "*", "*")),
+                [
+                    models.HabitRecord(dt.date(2021, 1, 1), "habit1", True),
+                    models.HabitRecord(dt.date(2022, 1, 1), "habit1", True),
+                ],
+            )
+        ],
+    )
+
+    assert journal._filter_state(
+        "journal_file", dt.date(2020, 12, 31), dt.date(2021, 2, 1), None
+    ) == (
+        {
+            models.Habit("habit1", models.Frequency("*", "*", "*")),
+            models.Habit("habit2", models.Frequency("*", "*", "*")),
+        },
+        [
+            models.HabitRecord(dt.date(2021, 1, 1), "habit1", True),
+            models.HabitRecord(dt.date(2021, 1, 1), "habit2", True),
+        ],
+        [
+            (
+                models.Habit("habit1", models.Frequency("*", "*", "*")),
+                [models.HabitRecord(dt.date(2021, 1, 1), "habit1", True)],
+            ),
+            (
+                models.Habit("habit2", models.Frequency("*", "*", "*")),
+                [models.HabitRecord(dt.date(2021, 1, 1), "habit2", True)],
+            ),
+        ],
+    )
+
+
 def test_filter(monkeypatch):
     monkeypatch.setattr(journal, "get_state_at_date", lambda x, y: ([], [], []))
     assert journal.filter("journal_file", None, dt.date(2021, 1, 1), None) == []

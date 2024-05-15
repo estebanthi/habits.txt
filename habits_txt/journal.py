@@ -102,6 +102,67 @@ def fill_day(
     return records_fill
 
 
+def _filter_state(
+    journal_file: str,
+    start_date: dt.date | None,
+    end_date: dt.date,
+    habit_name: str | None,
+) -> typing.Tuple[
+    set[models.Habit],
+    list[models.HabitRecord],
+    list[
+        typing.Tuple[
+            models.Habit,
+            list[models.HabitRecord],
+        ]
+    ],
+]:
+    """
+    Filter state.
+
+    :param journal_file: Path to the journal file.
+    :param start_date: Start date.
+    :param end_date: End date.
+    :param habit_name: Habit name.
+    :return: Filtered state.
+    """
+    tracked_habits, records, habits_records_matches = get_state_at_date(
+        journal_file, end_date
+    )
+    if not start_date:
+        try:
+            start_date = min(record.date for record in records)
+        except ValueError:
+            return set(), [], []
+
+    filtered_tracked_habits = set(
+        [
+            habit
+            for habit in tracked_habits
+            if (not habit_name or habit.name == habit_name)
+        ]
+    )
+
+    filtered_records = [
+        record
+        for record in records
+        if start_date <= record.date <= end_date
+        and (not habit_name or record.habit_name == habit_name)
+    ]
+
+    filtered_habits_records_matches = []
+    for habit, habit_records in habits_records_matches:
+        if habit_name and habit.name != habit_name:
+            continue
+        filtered_habit_records = [
+            record for record in habit_records if start_date <= record.date <= end_date
+        ]
+        if filtered_habit_records:
+            filtered_habits_records_matches.append((habit, filtered_habit_records))
+
+    return filtered_tracked_habits, filtered_records, filtered_habits_records_matches
+
+
 def filter(
     journal_file: str,
     start_date: dt.date | None,
@@ -117,20 +178,7 @@ def filter(
     :param habit_name: Habit name.
     :return: Filtered records.
     """
-    tracked_habits, records, habits_records_matches = get_state_at_date(
-        journal_file, end_date
-    )
-    if not start_date:
-        try:
-            start_date = min(record.date for record in records)
-        except ValueError:
-            return []
-    return [
-        record
-        for record in records
-        if start_date <= record.date <= end_date
-        and (not habit_name or record.habit_name == habit_name)
-    ]
+    return _filter_state(journal_file, start_date, end_date, habit_name)[1]
 
 
 def check(journal_file: str, date: dt.date) -> bool:

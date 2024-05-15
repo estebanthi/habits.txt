@@ -20,6 +20,26 @@ def test_frequency_next_date():
     assert next_date == dt.date(2024, 2, 1)
 
 
+def test_frequency_get_n_dates():
+    frequency = models.Frequency("*", "*", "*")
+    start_date = dt.date(2024, 1, 1)
+    end_date = dt.date(2024, 1, 5)
+    n_dates = frequency.get_n_dates(start_date, end_date)
+    assert n_dates == 5
+
+    frequency = models.Frequency("*", "*", "*")
+    start_date = dt.date(2024, 1, 1)
+    end_date = dt.date(2024, 1, 1)
+    n_dates = frequency.get_n_dates(start_date, end_date)
+    assert n_dates == 1
+
+    frequency = models.Frequency("1", "*", "*")
+    start_date = dt.date(2024, 1, 1)
+    end_date = dt.date(2024, 2, 1)
+    n_dates = frequency.get_n_dates(start_date, end_date)
+    assert n_dates == 2
+
+
 def test_str_frequency():
     frequency = models.Frequency("*", "*", "*")
     assert str(frequency) == "* * *"

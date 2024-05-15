@@ -32,6 +32,22 @@ class Frequency:
         cron = croniter.croniter(cron_str, dt.datetime.combine(date, dt.time()))
         return cron.get_next(dt.datetime).date()
 
+    def get_n_dates(self, start_date: dt.date, end_date: dt.date) -> int:
+        """
+        Get the number of dates between two dates based on the frequency.
+
+        :param start_date: Start date.
+        :param end_date: End date.
+        :return: Number of dates.
+        """
+        n_dates = 1
+        date = start_date
+        while date <= end_date:
+            date = self.get_next_date(date)
+            if date <= end_date:
+                n_dates += 1
+        return n_dates
+
     def __repr__(self) -> str:
         return f"{self.day} {self.month} {self.day_of_week}"
 
@@ -98,6 +114,7 @@ class HabitCompletionInfo:
 
     habit: Habit
     n_records: int
-    average: float | None
+    n_records_expected: int
+    average: float
     start_date: dt.date
     end_date: dt.date | None

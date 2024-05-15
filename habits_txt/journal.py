@@ -4,15 +4,22 @@ import typing
 
 import habits_txt.builder as builder
 import habits_txt.defaults as defaults
+import habits_txt.directives as directives_models
 import habits_txt.exceptions as exceptions
 import habits_txt.models as models
 import habits_txt.parser as parser
 import habits_txt.records_query as records_query
 
 
-def get_state_at_date(
-    journal_file: str, date: dt.date
-) -> typing.Tuple[set[models.Habit], list[models.HabitRecord]]:
+def get_state_at_date(journal_file: str, date: dt.date) -> typing.Tuple[
+    set[models.Habit],
+    list[models.HabitRecord],
+    list[
+        typing.Tuple[
+            directives_models.TrackDirective, directives_models.UntrackDirective | None
+        ]
+    ],
+]:
     """
     Get the state of the habits at a given date.
 
@@ -23,13 +30,15 @@ def get_state_at_date(
     directives, parse_errors = parser.parse_file(journal_file)
     _log_errors(parse_errors)
     try:
-        tracked_habits, records = builder.get_state_at_date(directives, date)
+        tracked_habits, records, track_untrack_matches = builder.get_state_at_date(
+            directives, date
+        )
     except exceptions.ConsistencyError as e:
         logging.error(e)
         logging.error("Cannot continue due to consistency errors")
         exit(1)
 
-    return tracked_habits, records
+    return tracked_habits, records, track_untrack_matches
 
 
 def _log_errors(errors: list[str]):
@@ -54,7 +63,9 @@ def fill_day(
     :return: Journal file.
     """
     records_fill = []
-    tracked_habits, records = get_state_at_date(journal_file, date)
+    tracked_habits, records, track_untrack_matches = get_state_at_date(
+        journal_file, date
+    )
     if not tracked_habits:
         logging.info(f"{defaults.COMMENT_CHAR} No habits tracked")
         return []
@@ -106,7 +117,9 @@ def filter(
     :param habit_name: Habit name.
     :return: Filtered records.
     """
-    tracked_habits, records = get_state_at_date(journal_file, end_date)
+    tracked_habits, records, track_untrack_matches = get_state_at_date(
+        journal_file, end_date
+    )
     if not start_date:
         try:
             start_date = min(record.date for record in records)

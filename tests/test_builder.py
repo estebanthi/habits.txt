@@ -286,7 +286,7 @@ def test_get_state_at_date():
     )
 
     directives = [directive1, directive2, directive3, directive4]
-    tracked_habits, records = builder.get_state_at_date(
+    tracked_habits, records, track_untrack_matches = builder.get_state_at_date(
         directives, dt.datetime(2024, 1, 2)
     )
     assert tracked_habits == {
@@ -294,8 +294,9 @@ def test_get_state_at_date():
         builder.models.Habit("Habit 2", builder.models.Frequency("*", "*", "*"), False),
     }
     assert records == []
+    assert track_untrack_matches == [(directive1, None), (directive2, None)]
 
-    tracked_habits, records = builder.get_state_at_date(
+    tracked_habits, records, track_untrack_matches = builder.get_state_at_date(
         directives, dt.datetime(2024, 1, 4)
     )
     assert tracked_habits == {
@@ -303,6 +304,11 @@ def test_get_state_at_date():
         builder.models.Habit("Habit 3", builder.models.Frequency("*", "*", "*"), False),
     }
     assert records == []
+    assert track_untrack_matches == [
+        (directive1, None),
+        (directive2, directive4),
+        (directive3, None),
+    ]
 
 
 def test_get_track_untrack_matches_at_date():

@@ -247,28 +247,36 @@ def _check_record_directive_is_valid(
 
 def get_state_at_date(
     directives_: list[directives.Directive], date: dt.date
-) -> typing.Tuple[set[models.Habit], list[models.HabitRecord]]:
+) -> typing.Tuple[
+    set[models.Habit],
+    list[models.HabitRecord],
+    list[typing.Tuple[directives.TrackDirective, directives.UntrackDirective | None]],
+]:
     """
     Get the state of the habits at a given date.
 
     :param directives_: List of directives.
     :param date: Date to check.
-    :return: List of tracked habits, list of records.
+    :return: List of tracked habits, list of records, list of track-untrack matches.
 
     Example:
     >>> directive1 = directives.TrackDirective(dt.datetime(2024, 1, 1), "Habit 1", models.Frequency("*", "*", "*"))
     >>> directive2 = directives.TrackDirective(dt.datetime(2024, 1, 2), "Habit 2", models.Frequency("*", "*", "*"))
     >>> directive3 = directives.RecordDirective(dt.datetime(2024, 1, 1), "Habit 1", False)
-    >>> tracked_habits, records = get_state_at_date([directive1, directive2, directive3], dt.datetime(2024, 1, 1))
+    >>> tracked_habits, records, track_untrack_matches = \
+    get_state_at_date([directive1, directive2, directive3], dt.datetime(2024, 1, 1))
     >>> print(tracked_habits)
     [Habit 1]
     >>> print(records)
     [HabitRecord(Habit 1, False)]
+    >>> print(track_untrack_matches)
+    [(directive1, None)]
     """
     tracked_habits = _get_tracked_habits_at_date(directives_, date)
     records = _get_records_up_to_date(directives_, date)
+    track_untrack_matches = get_track_untrack_matches_at_date(directives_, date)
 
-    return tracked_habits, records
+    return tracked_habits, records, track_untrack_matches
 
 
 def get_track_untrack_matches_at_date(

@@ -20,6 +20,11 @@ def test_frequency_next_date():
     assert next_date == dt.date(2024, 2, 1)
 
 
+def test_str_frequency():
+    frequency = models.Frequency("*", "*", "*")
+    assert str(frequency) == "* * *"
+
+
 def test_habit_hash():
     habit1 = models.Habit("habit1", models.Frequency("*", "*", "*"))
     habit2 = models.Habit("habit2", models.Frequency("*", "*", "*"))

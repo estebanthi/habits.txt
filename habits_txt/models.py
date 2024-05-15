@@ -32,6 +32,9 @@ class Frequency:
         cron = croniter.croniter(cron_str, dt.datetime.combine(date, dt.time()))
         return cron.get_next(dt.datetime).date()
 
+    def __repr__(self) -> str:
+        return f"{self.day} {self.month} {self.day_of_week}"
+
 
 @dataclass
 class Habit:

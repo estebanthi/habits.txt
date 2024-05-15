@@ -98,12 +98,12 @@ def edit(file):
     click.edit(filename=file.name)
 
 
-@cli.group()
+@cli.group(help="Configuration settings")
 def config():
     config_.setup()
 
 
-@config.group()
+@config.group(help="Set configuration settings")
 def set():
     try:
         config_.validate()
@@ -122,7 +122,7 @@ def journal(path):
     click.echo(f"Journal file path set to {path}")
 
 
-@config.command()
+@config.command(help="Get configuration settings")
 def get():
     """
     Get all configuration settings.
@@ -136,7 +136,7 @@ def get():
         click.echo(f.read())
 
 
-@config.command(name="edit")
+@config.command(name="edit", help="Edit configuration settings with default editor")
 def config_edit():
     """
     Edit configuration settings.
@@ -144,7 +144,7 @@ def config_edit():
     click.edit(filename=defaults.APPDATA_PATH + "/config.ini")
 
 
-@cli.command()
+@cli.command(help="Check the journal file is consistent at a given date")
 @click.argument("file", type=click.File("r"))
 @click.option(
     "-d",
@@ -152,7 +152,6 @@ def config_edit():
     type=click.DateTime(formats=["%Y-%m-%d"]),
     default=dt.date.today().strftime(defaults.DATE_FMT),
     callback=lambda ctx, param, value: value.date(),
-    help="Check the journal file is consistent at a given date",
 )
 def check(file, date):
     """

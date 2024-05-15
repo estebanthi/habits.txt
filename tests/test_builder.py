@@ -48,6 +48,17 @@ def test_get_tracked_habits_at_date():
         builder.models.Habit("Habit 2", builder.models.Frequency("*", "*", "*"), False),
     }
 
+    directive4 = builder.directives.UntrackDirective(
+        dt.datetime(2024, 1, 4), "Habit 2", 2
+    )
+    tracked_habits = builder._get_tracked_habits_at_date(
+        [directive1, directive2, directive3, directive4], dt.datetime(2024, 1, 4)
+    )
+    assert tracked_habits == {
+        builder.models.Habit("Habit 1", builder.models.Frequency("*", "*", "*"), False),
+        builder.models.Habit("Habit 3", builder.models.Frequency("*", "*", "*"), False),
+    }
+
 
 def test_check_track_directive_is_valid():
     directive = builder.directives.TrackDirective(
@@ -214,3 +225,81 @@ def test_check_record_directive_is_valid():
         builder._check_record_directive_is_valid(
             record_directive, tracked_habits, current_records
         )
+
+    with pytest.raises(builder.exceptions.ConsistencyError):
+        tracked_habits = {
+            builder.models.Habit(
+                "Habit 1", builder.models.Frequency("*", "*", "*"), True
+            )
+        }
+        record_directive = builder.directives.RecordDirective(
+            dt.datetime(2024, 1, 1), "Habit 1", 1, True
+        )
+
+        current_records = []
+
+        builder._check_record_directive_is_valid(
+            record_directive, tracked_habits, current_records
+        )
+
+    with pytest.raises(builder.exceptions.ConsistencyError):
+        tracked_habits = {
+            builder.models.Habit(
+                "Habit 1", builder.models.Frequency("*", "*", "*"), False
+            )
+        }
+        record_directive = builder.directives.RecordDirective(
+            dt.datetime(2024, 1, 1), "Habit 1", 1, 10.0
+        )
+
+        current_records = []
+
+        builder._check_record_directive_is_valid(
+            record_directive, tracked_habits, current_records
+        )
+
+
+def test_get_state_at_date():
+    directive1 = builder.directives.TrackDirective(
+        dt.datetime(2024, 1, 1),
+        "Habit 1",
+        1,
+        builder.models.Frequency("*", "*", "*"),
+        False,
+    )
+    directive2 = builder.directives.TrackDirective(
+        dt.datetime(2024, 1, 2),
+        "Habit 2",
+        2,
+        builder.models.Frequency("*", "*", "*"),
+        False,
+    )
+    directive3 = builder.directives.TrackDirective(
+        dt.datetime(2024, 1, 3),
+        "Habit 3",
+        3,
+        builder.models.Frequency("*", "*", "*"),
+        False,
+    )
+    directive4 = builder.directives.UntrackDirective(
+        dt.datetime(2024, 1, 4), "Habit 2", 2
+    )
+
+    directives = [directive1, directive2, directive3, directive4]
+    tracked_habits, records = builder.get_state_at_date(
+        directives, dt.datetime(2024, 1, 2)
+    )
+    assert tracked_habits == {
+        builder.models.Habit("Habit 1", builder.models.Frequency("*", "*", "*"), False),
+        builder.models.Habit("Habit 2", builder.models.Frequency("*", "*", "*"), False),
+    }
+    assert records == []
+
+    tracked_habits, records = builder.get_state_at_date(
+        directives, dt.datetime(2024, 1, 4)
+    )
+    assert tracked_habits == {
+        builder.models.Habit("Habit 1", builder.models.Frequency("*", "*", "*"), False),
+        builder.models.Habit("Habit 3", builder.models.Frequency("*", "*", "*"), False),
+    }
+    assert records == []

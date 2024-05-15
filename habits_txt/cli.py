@@ -214,7 +214,7 @@ def _style_record(record: models_.HabitRecord) -> str:
             click.style(
                 dt.datetime.strftime(record.date, defaults.DATE_FMT), fg="blue"
             ),
-            click.style(record.habit_name, fg="green"),
+            f'"{click.style(record.habit_name, fg="green")}"',
             click.style(record._str_value(), fg="yellow"),
         ]
     )

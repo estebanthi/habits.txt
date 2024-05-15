@@ -1,4 +1,5 @@
 import datetime as dt
+import os
 
 import click
 
@@ -117,7 +118,7 @@ def journal(path):
     """
     Set the journal file path.
     """
-    config_.set("journal", path, "CLI")
+    config_.set("journal", os.path.abspath(path), "CLI")
     click.echo(f"Journal file path set to {path}")
 
 

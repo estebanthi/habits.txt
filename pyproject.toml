@@ -4,7 +4,9 @@ version = "0.2.0"
 description = ""
 authors = ["estebanthi <esteban.thilliez@gmail.com>"]
 readme = "README.md"
-packages = [{include = "habits_txt"},{include = "main.py"}]
+packages = [
+    {include = "habits_txt"},
+]
 
 [tool.poetry.dependencies]
 python = "^3.12"
@@ -12,7 +14,7 @@ croniter = "^2.0.5"
 click = "^8.1.7"
 
 [tool.poetry.scripts]
-hbtxt = "main:main"
+hbtxt = "bin.hbtxt:main"
 
 
 [tool.poetry.group.dev.dependencies]

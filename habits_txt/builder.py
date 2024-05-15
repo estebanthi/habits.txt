@@ -250,12 +250,7 @@ def get_state_at_date(
 ) -> typing.Tuple[
     set[models.Habit],
     list[models.HabitRecord],
-    list[
-        typing.Tuple[
-            models.Habit,
-            list[models.HabitRecord],
-        ]
-    ],
+    list[models.HabitRecordMatch],
 ]:
     """
     Get the state of the habits at a given date.
@@ -275,7 +270,7 @@ def get_state_at_date(
     >>> print(records)
     [HabitRecord(Habit 1, False)]
     >>> print(habits_records_matches)
-    [(Habit 1, [HabitRecord(Habit 1, False)])]
+    [(Habit 1, [HabitRecord(Habit 1, False)], 2024-01-01, None)]
     """
     tracked_habits = _get_tracked_habits_at_date(directives_, date)
     records = _get_records_up_to_date(directives_, date)
@@ -284,14 +279,18 @@ def get_state_at_date(
         directives_, date
     )
     habits_records_matches = [
-        (
-            _build_habit_from_track_directive(track_directive),
-            [
+        models.HabitRecordMatch(
+            habit=_build_habit_from_track_directive(track_directive),
+            habit_records=[
                 _build_habit_record_from_record_directive(record_directive)
                 for record_directive in record_directives
             ],
+            tracking_start_date=track_directive.date,
+            tracking_end_date=(
+                untrack_directive.date if untrack_directive is not None else None
+            ),
         )
-        for track_directive, _, record_directives in track_untrack_record_matches
+        for track_directive, untrack_directive, record_directives in track_untrack_record_matches
     ]
 
     return tracked_habits, records, habits_records_matches

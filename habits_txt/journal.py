@@ -13,12 +13,7 @@ import habits_txt.records_query as records_query
 def get_state_at_date(journal_file: str, date: dt.date) -> typing.Tuple[
     set[models.Habit],
     list[models.HabitRecord],
-    list[
-        typing.Tuple[
-            models.Habit,
-            list[models.HabitRecord],
-        ]
-    ],
+    list[models.HabitRecordMatch],
 ]:
     """
     Get the state of the habits at a given date.
@@ -110,12 +105,7 @@ def _filter_state(
 ) -> typing.Tuple[
     set[models.Habit],
     list[models.HabitRecord],
-    list[
-        typing.Tuple[
-            models.Habit,
-            list[models.HabitRecord],
-        ]
-    ],
+    list[models.HabitRecordMatch],
 ]:
     """
     Filter state.
@@ -151,14 +141,19 @@ def _filter_state(
     ]
 
     filtered_habits_records_matches = []
-    for habit, habit_records in habits_records_matches:
-        if habit_name and habit.name != habit_name:
+    for match in habits_records_matches:
+        if match.tracking_start_date > end_date or (
+            match.tracking_end_date and match.tracking_end_date < start_date
+        ):
             continue
-        filtered_habit_records = [
-            record for record in habit_records if start_date <= record.date <= end_date
+        if habit_name and match.habit.name != habit_name:
+            continue
+        match.habit_records = [
+            record
+            for record in match.habit_records
+            if start_date <= record.date <= end_date
         ]
-        if filtered_habit_records:
-            filtered_habits_records_matches.append((habit, filtered_habit_records))
+        filtered_habits_records_matches.append(match)
 
     return filtered_tracked_habits, filtered_records, filtered_habits_records_matches
 

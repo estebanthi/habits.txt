@@ -116,19 +116,23 @@ def test_filter_state(monkeypatch):
         models.HabitRecord(dt.date(2022, 1, 1), "habit2", True),
     ]
     habits_records_matches = [
-        (
+        models.HabitRecordMatch(
             models.Habit("habit1", models.Frequency("*", "*", "*")),
             [
                 models.HabitRecord(dt.date(2021, 1, 1), "habit1", True),
                 models.HabitRecord(dt.date(2022, 1, 1), "habit1", True),
             ],
+            dt.date(2021, 1, 1),
+            None,
         ),
-        (
+        models.HabitRecordMatch(
             models.Habit("habit2", models.Frequency("*", "*", "*")),
             [
                 models.HabitRecord(dt.date(2021, 1, 1), "habit2", True),
                 models.HabitRecord(dt.date(2022, 1, 1), "habit2", True),
             ],
+            dt.date(2021, 1, 1),
+            None,
         ),
     ]
     monkeypatch.setattr(
@@ -151,12 +155,14 @@ def test_filter_state(monkeypatch):
             models.HabitRecord(dt.date(2022, 1, 1), "habit1", True),
         ],
         [
-            (
+            models.HabitRecordMatch(
                 models.Habit("habit1", models.Frequency("*", "*", "*")),
                 [
                     models.HabitRecord(dt.date(2021, 1, 1), "habit1", True),
                     models.HabitRecord(dt.date(2022, 1, 1), "habit1", True),
                 ],
+                dt.date(2021, 1, 1),
+                None,
             )
         ],
     )
@@ -173,13 +179,21 @@ def test_filter_state(monkeypatch):
             models.HabitRecord(dt.date(2021, 1, 1), "habit2", True),
         ],
         [
-            (
+            models.HabitRecordMatch(
                 models.Habit("habit1", models.Frequency("*", "*", "*")),
-                [models.HabitRecord(dt.date(2021, 1, 1), "habit1", True)],
+                [
+                    models.HabitRecord(dt.date(2021, 1, 1), "habit1", True),
+                ],
+                dt.date(2021, 1, 1),
+                None,
             ),
-            (
+            models.HabitRecordMatch(
                 models.Habit("habit2", models.Frequency("*", "*", "*")),
-                [models.HabitRecord(dt.date(2021, 1, 1), "habit2", True)],
+                [
+                    models.HabitRecord(dt.date(2021, 1, 1), "habit2", True),
+                ],
+                dt.date(2021, 1, 1),
+                None,
             ),
         ],
     )

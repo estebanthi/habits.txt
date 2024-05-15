@@ -261,69 +261,86 @@ def test_check_record_directive_is_valid():
 
 def test_get_state_at_date():
     directive1 = builder.directives.TrackDirective(
-        dt.datetime(2024, 1, 1),
+        dt.date(2024, 1, 1),
         "Habit 1",
         1,
         builder.models.Frequency("*", "*", "*"),
         False,
     )
     directive2 = builder.directives.TrackDirective(
-        dt.datetime(2024, 1, 2),
+        dt.date(2024, 1, 2),
         "Habit 2",
         2,
         builder.models.Frequency("*", "*", "*"),
         False,
     )
     directive3 = builder.directives.TrackDirective(
-        dt.datetime(2024, 1, 3),
+        dt.date(2024, 1, 3),
         "Habit 3",
         3,
         builder.models.Frequency("*", "*", "*"),
         False,
     )
-    directive4 = builder.directives.UntrackDirective(
-        dt.datetime(2024, 1, 4), "Habit 2", 2
-    )
+    directive4 = builder.directives.UntrackDirective(dt.date(2024, 1, 4), "Habit 2", 2)
     directive5 = builder.directives.RecordDirective(
-        dt.datetime(2024, 1, 1), "Habit 1", 1, False
+        dt.date(2024, 1, 1), "Habit 1", 1, False
     )
 
     directives = [directive1, directive2, directive3, directive4, directive5]
     tracked_habits, records, habits_records_matches = builder.get_state_at_date(
-        directives, dt.datetime(2024, 1, 2)
+        directives, dt.date(2024, 1, 2)
     )
     assert tracked_habits == {
         builder.models.Habit("Habit 1", builder.models.Frequency("*", "*", "*"), False),
         builder.models.Habit("Habit 2", builder.models.Frequency("*", "*", "*"), False),
     }
     assert records == [
-        builder.models.HabitRecord(dt.datetime(2024, 1, 1), "Habit 1", False)
+        builder.models.HabitRecord(dt.date(2024, 1, 1), "Habit 1", False)
     ]
     assert habits_records_matches == [
-        (
+        builder.models.HabitRecordMatch(
             builder.models.Habit("Habit 1", builder.models.Frequency("*", "*", "*")),
-            [builder.models.HabitRecord(dt.datetime(2024, 1, 1), "Habit 1", False)],
+            [builder.models.HabitRecord(dt.date(2024, 1, 1), "Habit 1", False)],
+            dt.date(2024, 1, 1),
+            None,
         ),
-        (builder.models.Habit("Habit 2", builder.models.Frequency("*", "*", "*")), []),
+        builder.models.HabitRecordMatch(
+            builder.models.Habit("Habit 2", builder.models.Frequency("*", "*", "*")),
+            [],
+            dt.date(2024, 1, 2),
+            None,
+        ),
     ]
 
     tracked_habits, records, track_untrack_matches = builder.get_state_at_date(
-        directives, dt.datetime(2024, 1, 4)
+        directives, dt.date(2024, 1, 4)
     )
     assert tracked_habits == {
         builder.models.Habit("Habit 1", builder.models.Frequency("*", "*", "*"), False),
         builder.models.Habit("Habit 3", builder.models.Frequency("*", "*", "*"), False),
     }
     assert records == [
-        builder.models.HabitRecord(dt.datetime(2024, 1, 1), "Habit 1", False)
+        builder.models.HabitRecord(dt.date(2024, 1, 1), "Habit 1", False)
     ]
     assert track_untrack_matches == [
-        (
+        builder.models.HabitRecordMatch(
             builder.models.Habit("Habit 1", builder.models.Frequency("*", "*", "*")),
-            [builder.models.HabitRecord(dt.datetime(2024, 1, 1), "Habit 1", False)],
+            [builder.models.HabitRecord(dt.date(2024, 1, 1), "Habit 1", False)],
+            dt.date(2024, 1, 1),
+            None,
         ),
-        (builder.models.Habit("Habit 2", builder.models.Frequency("*", "*", "*")), []),
-        (builder.models.Habit("Habit 3", builder.models.Frequency("*", "*", "*")), []),
+        builder.models.HabitRecordMatch(
+            builder.models.Habit("Habit 2", builder.models.Frequency("*", "*", "*")),
+            [],
+            dt.date(2024, 1, 2),
+            dt.date(2024, 1, 4),
+        ),
+        builder.models.HabitRecordMatch(
+            builder.models.Habit("Habit 3", builder.models.Frequency("*", "*", "*")),
+            [],
+            dt.date(2024, 1, 3),
+            None,
+        ),
     ]
 
 

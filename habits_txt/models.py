@@ -118,3 +118,15 @@ class HabitCompletionInfo:
     average: float
     start_date: dt.date
     end_date: dt.date | None
+
+
+@dataclass
+class HabitRecordMatch:
+    """
+    Match between a habit and its records.
+    """
+
+    habit: Habit
+    habit_records: list[HabitRecord]
+    tracking_start_date: dt.date
+    tracking_end_date: dt.date | None

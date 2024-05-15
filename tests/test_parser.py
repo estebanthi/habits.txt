@@ -73,6 +73,13 @@ def test_parse_directive(monkeypatch):
     assert parser._parse_directive("", 5) is None
     assert parser._parse_directive(parser.defaults.COMMENT_CHAR, 6) is None
 
+    monkeypatch.setattr(
+        "habits_txt.parser._parse_directive_type",
+        mock.MagicMock(return_value="unknown"),
+    )
+    directive_line = "2024-01-01 unknown 'Sample habit' (* * *)"
+    assert parser._parse_directive(directive_line, 7) is None
+
 
 def test_parse_date():
     directive_line = "2024-01-01 track 'Sample habit' (* * *)"
@@ -81,6 +88,9 @@ def test_parse_date():
 
     with pytest.raises(parser.exceptions.ParseError):
         parser._parse_date("2024-01-0 track 'Sample habit' (* * *)")
+
+    with pytest.raises(parser.exceptions.ParseError):
+        parser._parse_date("0000-01-01 track 'Sample habit' (* * *)")
 
 
 def test_parse_directive_type():
@@ -101,6 +111,10 @@ def test_parse_directive_type():
     assert directive_type == parser.directives.DirectiveType.RECORD
 
     directive_line = "2024-01-01 invalid 5"
+    with pytest.raises(parser.exceptions.ParseError):
+        parser._parse_directive_type(directive_line)
+
+    directive_line = "2024-01-01"
     with pytest.raises(parser.exceptions.ParseError):
         parser._parse_directive_type(directive_line)
 
@@ -126,6 +140,14 @@ def test_parse_frequency():
 
     with pytest.raises(parser.exceptions.ParseError):
         directive_line = "2024-01-01 track 'Sample habit' (* * a)"
+        parser._parse_frequency(directive_line)
+
+    with pytest.raises(parser.exceptions.ParseError):
+        directive_line = "2024-01-01 track 'Sample habit' * * *"
+        parser._parse_frequency(directive_line)
+
+    with pytest.raises(parser.exceptions.ParseError):
+        directive_line = "2024-01-01 track 'Sample habit' (* *)"
         parser._parse_frequency(directive_line)
 
 

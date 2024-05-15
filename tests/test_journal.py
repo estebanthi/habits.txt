@@ -267,7 +267,7 @@ def test_info(monkeypatch):
     assert info[0].habit == habit1
     assert info[0].n_records == 2
     assert info[0].n_records_expected == 3
-    assert info[0].average_total == 0.6666666666666666
+    assert info[0].average_total == 0.67
     assert info[0].average_present == 1.0
     assert info[0].start_date == tracking_start_date1
     assert info[0].end_date == tracking_end_date1

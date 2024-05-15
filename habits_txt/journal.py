@@ -79,20 +79,31 @@ def fill_day(
                 most_recent_and_completed_record.date
             )
         if next_due_date <= date:
+            append = True
             if interactive:
                 value_is_valid = False
                 parsed_value = None
                 while not value_is_valid:
                     value = input(f"{habit.name} ({next_due_date}): ")
+                    if value == "s":
+                        append = False
+                        break
+                    elif value == "a":
+                        break
                     try:
                         parsed_value = parser.parse_value_str(value)
                         value_is_valid = True
-                    except exceptions.ParseError as e:
-                        logging.error(e)
+                    except exceptions.ParseError:
+                        logging.error(
+                            f"Value must be a {"number" if habit.is_measurable else "boolean"}.\n"
+                            f"(or 's' to skip, or 'a' to append to the journal but fill manually later)"
+                        )
                 record = models.HabitRecord(date, habit.name, parsed_value)
             else:
                 record = models.HabitRecord(date, habit.name, None)
-            records_fill.append(record)
+
+            if append:
+                records_fill.append(record)
 
     return records_fill
 

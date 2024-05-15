@@ -40,6 +40,10 @@ def cli():
 def fill(file, date, interactive, write_top, write_bottom):
     """
     Fill habits on a given date using FILE.
+
+    Interactive mode allows you to be prompted to fill each habit.
+    If you want to skip a habit while in interactive mode, just press 's'.
+    If you want to skip a habit but still append it to the journal (for manual filling later), press 'a'.
     """
     records = journal_.fill_day(
         file.name,

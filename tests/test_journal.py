@@ -11,17 +11,17 @@ def test_get_state_at_date(monkeypatch):
     mock_directive = mock.MagicMock()
     mock_habit = mock.MagicMock()
     mock_record = mock.MagicMock()
-    mock_track_untrack_matches = mock.MagicMock()
+    mock_habits_records_matches = mock.MagicMock()
     monkeypatch.setattr(journal.parser, "parse_file", lambda x: ([mock_directive], []))
     monkeypatch.setattr(
         journal.builder,
         "get_state_at_date",
-        lambda x, y: ([mock_habit], [mock_record], mock_track_untrack_matches),
+        lambda x, y: ([mock_habit], [mock_record], mock_habits_records_matches),
     )
     assert journal.get_state_at_date("journal_file", dt.date(2021, 1, 1)) == (
         [mock_habit],
         [mock_record],
-        mock_track_untrack_matches,
+        mock_habits_records_matches,
     )
 
     monkeypatch.setattr(
@@ -31,7 +31,7 @@ def test_get_state_at_date(monkeypatch):
     assert journal.get_state_at_date("journal_file", dt.date(2021, 1, 1)) == (
         [mock_habit],
         [mock_record],
-        mock_track_untrack_matches,
+        mock_habits_records_matches,
     )
     journal._log_errors.assert_called_with(["error"])
 
@@ -58,11 +58,11 @@ def test_fill_day(monkeypatch):
 
     habits = [models.Habit("habit1", models.Frequency("*", "*", "*"))]
     records = []
-    track_untrack_matches = []
+    habits_records_matches = []
     monkeypatch.setattr(
         journal,
         "get_state_at_date",
-        lambda x, y: (habits, records, track_untrack_matches),
+        lambda x, y: (habits, records, habits_records_matches),
     )
     assert journal.fill_day("journal_file", dt.date(2021, 1, 1)) == [
         models.HabitRecord(dt.date(2021, 1, 1), "habit1", None)
@@ -84,7 +84,7 @@ def test_fill_day(monkeypatch):
     monkeypatch.setattr(
         journal,
         "get_state_at_date",
-        lambda x, y: (habits, records, track_untrack_matches),
+        lambda x, y: (habits, records, habits_records_matches),
     )
     assert journal.fill_day("journal_file", dt.date(2021, 1, 1)) == []
 
@@ -92,7 +92,7 @@ def test_fill_day(monkeypatch):
     monkeypatch.setattr(
         journal,
         "get_state_at_date",
-        lambda x, y: (habits, records, track_untrack_matches),
+        lambda x, y: (habits, records, habits_records_matches),
     )
     assert journal.fill_day("journal_file", dt.date(2021, 1, 1)) == []
 

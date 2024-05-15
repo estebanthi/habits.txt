@@ -88,3 +88,16 @@ class HabitRecord:
         elif self.value is None:
             return ""
         return str(self.value)
+
+
+@dataclass
+class HabitCompletionInfo:
+    """
+    Information about the completion of a habit.
+    """
+
+    habit: Habit
+    n_records: int
+    average: float | None
+    start_date: dt.date
+    end_date: dt.date | None

@@ -4,7 +4,6 @@ import typing
 
 import habits_txt.builder as builder
 import habits_txt.defaults as defaults
-import habits_txt.directives as directives_models
 import habits_txt.exceptions as exceptions
 import habits_txt.models as models
 import habits_txt.parser as parser
@@ -16,7 +15,8 @@ def get_state_at_date(journal_file: str, date: dt.date) -> typing.Tuple[
     list[models.HabitRecord],
     list[
         typing.Tuple[
-            directives_models.TrackDirective, directives_models.UntrackDirective | None
+            models.Habit,
+            list[models.HabitRecord],
         ]
     ],
 ]:
@@ -25,12 +25,12 @@ def get_state_at_date(journal_file: str, date: dt.date) -> typing.Tuple[
 
     :param journal_file: Path to the journal file.
     :param date: Date to check.
-    :return: Tracked habits, records.
+    :return: Tracked habits, records, matches between habits and records.
     """
     directives, parse_errors = parser.parse_file(journal_file)
     _log_errors(parse_errors)
     try:
-        tracked_habits, records, track_untrack_matches = builder.get_state_at_date(
+        tracked_habits, records, habits_records_matches = builder.get_state_at_date(
             directives, date
         )
     except exceptions.ConsistencyError as e:
@@ -38,7 +38,7 @@ def get_state_at_date(journal_file: str, date: dt.date) -> typing.Tuple[
         logging.error("Cannot continue due to consistency errors")
         exit(1)
 
-    return tracked_habits, records, track_untrack_matches
+    return tracked_habits, records, habits_records_matches
 
 
 def _log_errors(errors: list[str]):
@@ -63,7 +63,7 @@ def fill_day(
     :return: Journal file.
     """
     records_fill = []
-    tracked_habits, records, track_untrack_matches = get_state_at_date(
+    tracked_habits, records, habits_records_matches = get_state_at_date(
         journal_file, date
     )
     if not tracked_habits:
@@ -117,7 +117,7 @@ def filter(
     :param habit_name: Habit name.
     :return: Filtered records.
     """
-    tracked_habits, records, track_untrack_matches = get_state_at_date(
+    tracked_habits, records, habits_records_matches = get_state_at_date(
         journal_file, end_date
     )
     if not start_date:

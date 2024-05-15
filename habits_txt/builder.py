@@ -252,9 +252,8 @@ def get_state_at_date(
     list[models.HabitRecord],
     list[
         typing.Tuple[
-            directives.TrackDirective,
-            directives.UntrackDirective | None,
-            list[directives.RecordDirective],
+            models.Habit,
+            list[models.HabitRecord],
         ]
     ],
 ]:
@@ -263,26 +262,39 @@ def get_state_at_date(
 
     :param directives_: List of directives.
     :param date: Date to check.
-    :return: List of tracked habits, list of records, list of track-untrack matches.
+    :return: List of tracked habits, list of records, list of matches.
 
     Example:
     >>> directive1 = directives.TrackDirective(dt.datetime(2024, 1, 1), "Habit 1", models.Frequency("*", "*", "*"))
     >>> directive2 = directives.TrackDirective(dt.datetime(2024, 1, 2), "Habit 2", models.Frequency("*", "*", "*"))
     >>> directive3 = directives.RecordDirective(dt.datetime(2024, 1, 1), "Habit 1", False)
-    >>> tracked_habits, records, track_untrack_record_matches = \
+    >>> tracked_habits, records, habits_records_matches = \
     get_state_at_date([directive1, directive2, directive3], dt.datetime(2024, 1, 1))
     >>> print(tracked_habits)
     [Habit 1]
     >>> print(records)
     [HabitRecord(Habit 1, False)]
-    >>> print(track_untrack_record_matches)
-    [(directive1, None, [directive3])]
+    >>> print(habits_records_matches)
+    [(Habit 1, [HabitRecord(Habit 1, False)])]
     """
     tracked_habits = _get_tracked_habits_at_date(directives_, date)
     records = _get_records_up_to_date(directives_, date)
-    track_untrack_matches = get_track_untrack_record_matches_at_date(directives_, date)
 
-    return tracked_habits, records, track_untrack_matches
+    track_untrack_record_matches = get_track_untrack_record_matches_at_date(
+        directives_, date
+    )
+    habits_records_matches = [
+        (
+            _build_habit_from_track_directive(track_directive),
+            [
+                _build_habit_record_from_record_directive(record_directive)
+                for record_directive in record_directives
+            ],
+        )
+        for track_directive, _, record_directives in track_untrack_record_matches
+    ]
+
+    return tracked_habits, records, habits_records_matches
 
 
 def get_track_untrack_record_matches_at_date(

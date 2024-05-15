@@ -284,17 +284,28 @@ def test_get_state_at_date():
     directive4 = builder.directives.UntrackDirective(
         dt.datetime(2024, 1, 4), "Habit 2", 2
     )
+    directive5 = builder.directives.RecordDirective(
+        dt.datetime(2024, 1, 1), "Habit 1", 1, False
+    )
 
-    directives = [directive1, directive2, directive3, directive4]
-    tracked_habits, records, track_untrack_matches = builder.get_state_at_date(
+    directives = [directive1, directive2, directive3, directive4, directive5]
+    tracked_habits, records, habits_records_matches = builder.get_state_at_date(
         directives, dt.datetime(2024, 1, 2)
     )
     assert tracked_habits == {
         builder.models.Habit("Habit 1", builder.models.Frequency("*", "*", "*"), False),
         builder.models.Habit("Habit 2", builder.models.Frequency("*", "*", "*"), False),
     }
-    assert records == []
-    assert track_untrack_matches == [(directive1, None), (directive2, None)]
+    assert records == [
+        builder.models.HabitRecord(dt.datetime(2024, 1, 1), "Habit 1", False)
+    ]
+    assert habits_records_matches == [
+        (
+            builder.models.Habit("Habit 1", builder.models.Frequency("*", "*", "*")),
+            [builder.models.HabitRecord(dt.datetime(2024, 1, 1), "Habit 1", False)],
+        ),
+        (builder.models.Habit("Habit 2", builder.models.Frequency("*", "*", "*")), []),
+    ]
 
     tracked_habits, records, track_untrack_matches = builder.get_state_at_date(
         directives, dt.datetime(2024, 1, 4)
@@ -303,11 +314,16 @@ def test_get_state_at_date():
         builder.models.Habit("Habit 1", builder.models.Frequency("*", "*", "*"), False),
         builder.models.Habit("Habit 3", builder.models.Frequency("*", "*", "*"), False),
     }
-    assert records == []
+    assert records == [
+        builder.models.HabitRecord(dt.datetime(2024, 1, 1), "Habit 1", False)
+    ]
     assert track_untrack_matches == [
-        (directive1, None),
-        (directive2, directive4),
-        (directive3, None),
+        (
+            builder.models.Habit("Habit 1", builder.models.Frequency("*", "*", "*")),
+            [builder.models.HabitRecord(dt.datetime(2024, 1, 1), "Habit 1", False)],
+        ),
+        (builder.models.Habit("Habit 2", builder.models.Frequency("*", "*", "*")), []),
+        (builder.models.Habit("Habit 3", builder.models.Frequency("*", "*", "*")), []),
     ]
 
 

@@ -6,6 +6,7 @@ import click
 import habits_txt.config as config_
 import habits_txt.defaults as defaults
 import habits_txt.journal as journal_
+import habits_txt.models as models_
 
 
 @click.group()
@@ -46,7 +47,9 @@ def fill(file, date, interactive, write_top, write_bottom):
         interactive,
     )
     if records:
-        records_str = "\n".join([str(record) for record in records]) if records else ""
+        records_str = "\n".join([_style_record(record) for record in records])
+        if write_top or write_bottom:
+            records_str = click.unstyle(records_str)
         if write_top:
             content = file.read()
             file.seek(0)
@@ -83,7 +86,7 @@ def filter(file, start, end, name):
     """
     records = journal_.filter(file.name, start, end, name)
     if records:
-        records_str = "\n".join([str(record) for record in records])
+        records_str = "\n".join([_style_record(record) for record in records])
         click.echo(records_str)
     else:
         click.echo(f"{defaults.COMMENT_CHAR} No records found")
@@ -114,38 +117,8 @@ def info(file, start, end, name):
     habit_completion_infos = journal_.info(file.name, start, end, name)
     if habit_completion_infos:
         for habit_completion_info in habit_completion_infos:
-            click.echo(
-                f"{habit_completion_info.habit.name} ({habit_completion_info.start_date} - "
-                f"{habit_completion_info.end_date}):"
-            )
-            click.echo(f"  Total records in journal: {habit_completion_info.n_records}")
-            click.echo(
-                f"  Total records expected: {habit_completion_info.n_records_expected}"
-            )
-            click.echo(
-                f"  Missing records: "
-                f"{habit_completion_info.n_records_expected - habit_completion_info.n_records}"
-            )
-            value_str = (
-                "Average value"
-                if habit_completion_info.habit.is_measurable
-                else "Completion rate"
-            )
-
-            def process_average(x):
-                return (
-                    round(x, 2)
-                    if habit_completion_info.habit.is_measurable
-                    else str(x * 100) + "%"
-                )
-
-            click.echo(
-                f"  {value_str} (among all records): {process_average(habit_completion_info.average_total)}"
-            )
-            click.echo(
-                f"  {value_str} (among present records): "
-                f"{process_average(habit_completion_info.average_present)}"
-            )
+            click.echo(_style_completion_info(habit_completion_info))
+            click.echo()
     else:
         click.echo(f"{defaults.COMMENT_CHAR} No records found")
 
@@ -220,5 +193,86 @@ def check(file, date):
     """
     is_valid = journal_.check(file.name, date)
     click.echo(
-        "Journal file is consistent" if is_valid else "Journal file is inconsistent"
+        click.style(
+            (
+                "The journal file is consistent"
+                if is_valid
+                else "The journal file is not consistent"
+            ),
+            fg="green" if is_valid else "red",
+        )
     )
+
+
+def _style_record(record: models_.HabitRecord) -> str:
+    return " ".join(
+        [
+            click.style(
+                dt.datetime.strftime(record.date, defaults.DATE_FMT), fg="blue"
+            ),
+            click.style(record.habit_name, fg="green"),
+            click.style(record._str_value(), fg="yellow"),
+        ]
+    )
+
+
+def _style_completion_info(habit_completion_info: models_.HabitCompletionInfo) -> str:
+    def process_average(x):
+        return (
+            round(x, 2)
+            if habit_completion_info.habit.is_measurable
+            else str(x * 100) + "%"
+        )
+
+    string = "\n".join(
+        [
+            click.style(habit_completion_info.habit.name, fg="green")
+            + " ("
+            + click.style(
+                f"{habit_completion_info.start_date} - {habit_completion_info.end_date}",
+                fg="blue",
+            )
+            + "):",
+            click.style(
+                "  Total records in journal:",
+                fg="cyan",
+            )
+            + click.style(
+                f" {habit_completion_info.n_records}",
+                fg="bright_cyan",
+            ),
+            click.style(
+                "  Total records expected:",
+                fg="cyan",
+            )
+            + click.style(
+                f" {habit_completion_info.n_records_expected}",
+                fg="bright_cyan",
+            ),
+            click.style(
+                "  Missing records:",
+                fg="red",
+            )
+            + click.style(
+                f" {habit_completion_info.n_records_expected - habit_completion_info.n_records}",
+                fg="bright_red",
+            ),
+            click.style(
+                "  Average value (among all records):",
+                fg="magenta",
+            )
+            + click.style(
+                f" {process_average(habit_completion_info.average_total)}",
+                fg="bright_magenta",
+            ),
+            click.style(
+                "  Average value (among present records):",
+                fg="magenta",
+            )
+            + click.style(
+                f" {process_average(habit_completion_info.average_present)}",
+                fg="bright_magenta",
+            ),
+        ]
+    )
+    return string

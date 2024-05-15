@@ -269,3 +269,51 @@ def get_state_at_date(
     records = _get_records_up_to_date(directives_, date)
 
     return tracked_habits, records
+
+
+def get_track_untrack_matches_at_date(
+    directives_: list[directives.Directive], date: dt.date
+) -> list[typing.Tuple[directives.TrackDirective, directives.UntrackDirective | None]]:
+    """
+    Get the matches of track and untrack directives at a given date.
+
+    :param directives_: List of directives.
+    :param date: Date to check.
+    :return: List of matches.
+
+    Example:
+    >>> directive1 = directives.TrackDirective(dt.datetime(2024, 1, 1), "Habit 1", models.Frequency("*", "*", "*"))
+    >>> directive2 = directives.UntrackDirective(dt.datetime(2024, 1, 2), "Habit 1")
+    >>> directive3 = directives.TrackDirective(dt.datetime(2024, 1, 2), "Habit 2", models.Frequency("*", "*", "*"))
+    >>> matches = _get_track_untrack_matches_at_date([directive1, directive2, directive3], dt.datetime(2024, 2, 1))
+    >>> print(matches)
+    [(directive1, directive2), (directive3, None)]
+    """
+    directives_before_date = [
+        directive for directive in directives_ if directive.date <= date
+    ]
+    sorted_directives = _sort_directives(directives_before_date)
+
+    track_directives: list[directives.TrackDirective] = []
+    untrack_directives: list[directives.UntrackDirective] = []
+    matches: list[
+        typing.Tuple[directives.TrackDirective, directives.UntrackDirective | None]
+    ] = []
+    for directive in sorted_directives:
+        if isinstance(directive, directives.TrackDirective):
+            track_directives.append(directive)
+        elif isinstance(directive, directives.UntrackDirective):
+            untrack_directives.append(directive)
+
+    for track_directive in track_directives:
+        match = next(
+            (
+                untrack_directive
+                for untrack_directive in untrack_directives
+                if untrack_directive.habit_name == track_directive.habit_name
+            ),
+            None,
+        )
+        matches.append((track_directive, match))
+
+    return matches

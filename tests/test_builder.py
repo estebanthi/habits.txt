@@ -303,3 +303,36 @@ def test_get_state_at_date():
         builder.models.Habit("Habit 3", builder.models.Frequency("*", "*", "*"), False),
     }
     assert records == []
+
+
+def test_get_track_untrack_matches_at_date():
+    directive1 = builder.directives.TrackDirective(
+        dt.datetime(2024, 1, 1),
+        "Habit 1",
+        1,
+        builder.models.Frequency("*", "*", "*"),
+        False,
+    )
+    directive2 = builder.directives.TrackDirective(
+        dt.datetime(2024, 1, 2),
+        "Habit 2",
+        2,
+        builder.models.Frequency("*", "*", "*"),
+        False,
+    )
+    directive3 = builder.directives.UntrackDirective(
+        dt.datetime(2024, 1, 3),
+        "Habit 2",
+        2,
+    )
+    directive4 = builder.directives.TrackDirective(
+        dt.datetime(2024, 1, 4),
+        "Habit 3",
+        3,
+        builder.models.Frequency("*", "*", "*"),
+        False,
+    )
+
+    assert builder.get_track_untrack_matches_at_date(
+        [directive1, directive2, directive3, directive4], dt.datetime(2024, 1, 3)
+    ) == [(directive1, None), (directive2, directive3)]

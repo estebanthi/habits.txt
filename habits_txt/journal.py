@@ -226,9 +226,15 @@ def info(
         ]
         sum_values = sum(float(value) for value in non_none_values)
 
-        average_total = sum_values / n_records_expected if n_records_expected else 0
-
-        average_present = sum_values if n_records else 0
+        round_decimals = 2
+        average_total = (
+            round(sum_values / n_records_expected, round_decimals)
+            if n_records_expected
+            else 0
+        )
+        average_present = (
+            round(sum_values / n_records, round_decimals) if n_records else 0
+        )
 
         completion_info = models.HabitCompletionInfo(
             match.habit,

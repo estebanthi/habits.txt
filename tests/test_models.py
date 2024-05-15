@@ -42,7 +42,7 @@ def test_habit_record():
     assert record._str_value() == ""
 
     record = models.HabitRecord(dt.date(2024, 1, 1), "habit1", False)
-    assert not record.is_complete
+    assert record.is_complete
     assert record._str_value() == models.defaults.BOOLEAN_FALSE
 
     record = models.HabitRecord(dt.date(2024, 1, 1), "habit1", True)

@@ -69,7 +69,7 @@ class HabitRecord:
 
     @property
     def is_complete(self) -> bool:
-        return bool(self.value)
+        return self.value is not None
 
     def __str__(self) -> str:
         return (

@@ -33,9 +33,10 @@ def test_get_most_recent_and_completed_record():
     record1 = records_query.models.HabitRecord(dt.date(2024, 1, 1), habit1.name, False)
     record2 = records_query.models.HabitRecord(dt.date(2024, 1, 2), habit1.name, True)
     record3 = records_query.models.HabitRecord(dt.date(2024, 1, 3), habit1.name, False)
+    record4 = records_query.models.HabitRecord(dt.date(2024, 1, 4), habit1.name, None)
 
-    records = [record1, record2, record3]
+    records = [record1, record2, record3, record4]
     most_recent_and_completed_record = (
         records_query.get_most_recent_and_completed_record(habit1, records)
     )
-    assert most_recent_and_completed_record == record2
+    assert most_recent_and_completed_record == record3

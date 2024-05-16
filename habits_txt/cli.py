@@ -228,6 +228,12 @@ def _style_completion_info(habit_completion_info: models_.HabitCompletionInfo) -
             else str(x * 100) + "%"
         )
 
+    value_str = (
+        "Average value"
+        if habit_completion_info.habit.is_measurable
+        else "Completion rate"
+    )
+
     string = "\n".join(
         [
             click.style(habit_completion_info.habit.name, fg="green")
@@ -262,7 +268,7 @@ def _style_completion_info(habit_completion_info: models_.HabitCompletionInfo) -
                 fg="bright_red",
             ),
             click.style(
-                "  Average value (among expected records):",
+                f"  {value_str} (among expected records):",
                 fg="magenta",
             )
             + click.style(
@@ -270,7 +276,7 @@ def _style_completion_info(habit_completion_info: models_.HabitCompletionInfo) -
                 fg="bright_magenta",
             ),
             click.style(
-                "  Average value (among written records):",
+                f"  {value_str} (among written records):",
                 fg="magenta",
             )
             + click.style(

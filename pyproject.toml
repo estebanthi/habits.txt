@@ -9,7 +9,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = ">=3.12,<3.13"
 croniter = "^2.0.5"
 click = "^8.1.7"
 
@@ -26,6 +26,10 @@ black = "^24.4.2"
 mypy = "^1.10.0"
 types-croniter = "^2.0.0.20240423"
 pre-commit = "^3.7.1"
+
+
+[tool.poetry.group.build.dependencies]
+pyinstaller = "^6.6.0"
 
 [build-system]
 requires = ["poetry-core"]

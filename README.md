@@ -18,6 +18,8 @@ You can then use the CLI with:
 hbtxt --help
 ```
 
+Alternatively, you can use the executable provided by the latest release.
+
 ## Concepts
 
 ### Time-bound

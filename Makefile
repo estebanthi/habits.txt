@@ -8,7 +8,8 @@ PYINSTALLER_OPTS=--onefile -p ./ --specpath bin
 
 all: build
 
-publish: poetry publish --build
+publish:
+	poetry publish --build
 
 build:
 	$(PYINSTALLER_LINUX) $(PYINSTALLER_OPTS) $(SCRIPT) && $(PYINSTALLER_WINDOWS) $(SCRIPT) $(PYINSTALLER_OPTS)

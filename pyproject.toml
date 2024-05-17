@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "habits.txt"
-version = "0.3.4"
+version = "0.3.5"
 description = ""
 authors = ["estebanthi <esteban.thilliez@gmail.com>"]
 readme = "README.md"

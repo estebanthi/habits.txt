@@ -84,7 +84,7 @@ def fill_day(
                 value_is_valid = False
                 parsed_value = None
                 while not value_is_valid:
-                    value = input(f"{habit.name} ({next_due_date}): ")
+                    value = input(f"{habit.name}: ")
                     if value == "s":
                         append = False
                         break

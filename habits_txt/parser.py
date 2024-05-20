@@ -4,8 +4,6 @@ import re
 import typing
 from functools import wraps
 
-import croniter
-
 import habits_txt.defaults as defaults
 import habits_txt.directives as directives
 import habits_txt.exceptions as exceptions
@@ -223,16 +221,11 @@ def _parse_frequency(directive_line: str) -> models.Frequency:
         )
     frequency_str = res.group(0)
     frequency_str = frequency_str[1:-1]
-    frequency_parts = frequency_str.split(" ")
-    if len(frequency_parts) != 3:
-        raise exceptions.ParseError(f"Invalid frequency format: {frequency_str}")
-    day, month, day_of_week = frequency_parts
-    cron_expression = f"0 0 {day} {month} {day_of_week}"
     try:
-        croniter.croniter(cron_expression)
-        return models.Frequency(day, month, day_of_week)
+        frequency = models.Frequency(frequency_str)
+        return frequency
     except ValueError:
-        raise exceptions.ParseError(f"Invalid frequency format: {cron_expression}")
+        raise exceptions.ParseError(f"Invalid frequency format: {frequency_str}")
 
 
 @_handle_index_error_decorator(name="value")

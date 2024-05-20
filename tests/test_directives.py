@@ -2,6 +2,7 @@ import datetime as dt
 
 import habits_txt.defaults as defaults
 import habits_txt.directives as directives
+import habits_txt.models as models
 
 
 def test_directive():
@@ -18,21 +19,21 @@ def test_track_directive():
         dt.date(2021, 1, 1),
         "habit1",
         1,
-        directives.models.Frequency("*", "*", "*"),
+        models.Frequency("* * *"),
         True,
     )
     directive2 = directives.TrackDirective(
         dt.date(2021, 1, 1),
         "habit1",
         2,
-        directives.models.Frequency("*", "*", "*"),
+        models.Frequency("* * *"),
         True,
     )
 
     assert directive1 == directive2
     assert (
         str(directive1)
-        == f'2021-01-01 track "habit1" * * * {defaults.MEASURABLE_KEYWORD}'
+        == f'2021-01-01 track "habit1" (* * *) {defaults.MEASURABLE_KEYWORD}'
     )
 
 

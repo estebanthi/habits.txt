@@ -3,6 +3,7 @@ import unittest.mock as mock
 
 import pytest
 
+import habits_txt.models as models
 import habits_txt.parser as parser
 
 
@@ -36,7 +37,7 @@ def test_parse_directive(monkeypatch):
         dt.date(2024, 1, 1),
         "Sample habit",
         1,
-        parser.models.Frequency("*", "*", "*"),
+        models.Frequency("* * *"),
         False,
     )
 
@@ -48,7 +49,7 @@ def test_parse_directive(monkeypatch):
         dt.date(2024, 1, 1),
         "Sample habit",
         1,
-        parser.models.Frequency("*", "*", "*"),
+        models.Frequency("* * *"),
         True,
     )
 
@@ -136,7 +137,7 @@ def test_parse_habit_name():
 def test_parse_frequency():
     directive_line = "2024-01-01 track 'Sample habit' (* * *)"
     frequency = parser._parse_frequency(directive_line)
-    assert frequency == parser.models.Frequency("*", "*", "*")
+    assert frequency == models.Frequency("* * *")
 
     with pytest.raises(parser.exceptions.ParseError):
         directive_line = "2024-01-01 track 'Sample habit' (* * a)"
@@ -148,6 +149,18 @@ def test_parse_frequency():
 
     with pytest.raises(parser.exceptions.ParseError):
         directive_line = "2024-01-01 track 'Sample habit' (* *)"
+        parser._parse_frequency(directive_line)
+
+    with pytest.raises(parser.exceptions.ParseError):
+        directive_line = "2024-01-01 track 'Sample habit' (* * * *)"
+        parser._parse_frequency(directive_line)
+
+    directive_line = "2024-01-01 track 'Sample habit' (@daily)"
+    frequency = parser._parse_frequency(directive_line)
+    assert frequency == models.Frequency("@daily")
+
+    directive_line = "2024-01-01 track 'Sample habit' (@hourly)"
+    with pytest.raises(parser.exceptions.ParseError):
         parser._parse_frequency(directive_line)
 
 

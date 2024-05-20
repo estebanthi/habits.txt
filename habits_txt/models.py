@@ -64,6 +64,9 @@ class Frequency:
             return " ".join(self.cron_str.split()[2:])
         return self.cron_str
 
+    def __eq__(self, other):
+        return self.cron_str == other.cron_str
+
 
 @dataclass
 class Habit:

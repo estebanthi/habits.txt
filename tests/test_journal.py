@@ -56,7 +56,7 @@ def test_fill_day(monkeypatch):
     monkeypatch.setattr(journal, "get_state_at_date", lambda x, y: ([], [], []))
     assert journal.fill_day("journal_file", dt.date(2021, 1, 1)) == []
 
-    habits = [models.Habit("habit1", models.Frequency("*", "*", "*"))]
+    habits = [models.Habit("habit1", models.Frequency("* * *"))]
     records = []
     habits_records_matches = []
     monkeypatch.setattr(
@@ -106,8 +106,8 @@ def test_filter_state(monkeypatch):
     )
 
     tracked_habits = [
-        models.Habit("habit1", models.Frequency("*", "*", "*")),
-        models.Habit("habit2", models.Frequency("*", "*", "*")),
+        models.Habit("habit1", models.Frequency("* * *")),
+        models.Habit("habit2", models.Frequency("* * *")),
     ]
     records = [
         models.HabitRecord(dt.date(2021, 1, 1), "habit1", True),
@@ -117,7 +117,7 @@ def test_filter_state(monkeypatch):
     ]
     habits_records_matches = [
         models.HabitRecordMatch(
-            models.Habit("habit1", models.Frequency("*", "*", "*")),
+            models.Habit("habit1", models.Frequency("* * *")),
             [
                 models.HabitRecord(dt.date(2021, 1, 1), "habit1", True),
                 models.HabitRecord(dt.date(2022, 1, 1), "habit1", True),
@@ -126,7 +126,7 @@ def test_filter_state(monkeypatch):
             None,
         ),
         models.HabitRecordMatch(
-            models.Habit("habit2", models.Frequency("*", "*", "*")),
+            models.Habit("habit2", models.Frequency("* * *")),
             [
                 models.HabitRecord(dt.date(2021, 1, 1), "habit2", True),
                 models.HabitRecord(dt.date(2022, 1, 1), "habit2", True),
@@ -149,14 +149,14 @@ def test_filter_state(monkeypatch):
     assert journal._filter_state(
         "journal_file", None, dt.date(2024, 1, 1), "habit1"
     ) == (
-        {models.Habit("habit1", models.Frequency("*", "*", "*"))},
+        {models.Habit("habit1", models.Frequency("* * *"))},
         [
             models.HabitRecord(dt.date(2021, 1, 1), "habit1", True),
             models.HabitRecord(dt.date(2022, 1, 1), "habit1", True),
         ],
         [
             models.HabitRecordMatch(
-                models.Habit("habit1", models.Frequency("*", "*", "*")),
+                models.Habit("habit1", models.Frequency("* * *")),
                 [
                     models.HabitRecord(dt.date(2021, 1, 1), "habit1", True),
                     models.HabitRecord(dt.date(2022, 1, 1), "habit1", True),
@@ -171,8 +171,8 @@ def test_filter_state(monkeypatch):
         "journal_file", dt.date(2020, 12, 31), dt.date(2021, 2, 1), None
     ) == (
         {
-            models.Habit("habit1", models.Frequency("*", "*", "*")),
-            models.Habit("habit2", models.Frequency("*", "*", "*")),
+            models.Habit("habit1", models.Frequency("* * *")),
+            models.Habit("habit2", models.Frequency("* * *")),
         },
         [
             models.HabitRecord(dt.date(2021, 1, 1), "habit1", True),
@@ -180,7 +180,7 @@ def test_filter_state(monkeypatch):
         ],
         [
             models.HabitRecordMatch(
-                models.Habit("habit1", models.Frequency("*", "*", "*")),
+                models.Habit("habit1", models.Frequency("* * *")),
                 [
                     models.HabitRecord(dt.date(2021, 1, 1), "habit1", True),
                 ],
@@ -188,7 +188,7 @@ def test_filter_state(monkeypatch):
                 None,
             ),
             models.HabitRecordMatch(
-                models.Habit("habit2", models.Frequency("*", "*", "*")),
+                models.Habit("habit2", models.Frequency("* * *")),
                 [
                     models.HabitRecord(dt.date(2021, 1, 1), "habit2", True),
                 ],
@@ -247,7 +247,7 @@ def test_check(monkeypatch):
 
 
 def test_info(monkeypatch):
-    habit1 = models.Habit("habit1", models.Frequency("*", "*", "*"))
+    habit1 = models.Habit("habit1", models.Frequency("* * *"))
     record11 = models.HabitRecord(dt.date(2021, 1, 1), "habit1", True)
     record12 = models.HabitRecord(dt.date(2021, 1, 2), "habit1", True)
     tracking_start_date1 = dt.date(2021, 1, 1)

@@ -6,20 +6,32 @@ import croniter
 import habits_txt.defaults as defaults
 
 
-@dataclass
 class Frequency:
     """
-    Frequency of a habit, following a simplified cron-like syntax.
-
-    Example - every weekday:
-      day: *
-      month: *
-      day_of_week: 1-5
+    Frequency of a habit. Intraday frequencies are not supported.
     """
 
-    day: str
-    month: str
-    day_of_week: str
+    def __init__(self, cron_str: str):
+        self.cron_str = cron_str
+        self._process_cron_str()
+        self._validate_cron_str()
+
+    def _process_cron_str(self):
+        if len(self.cron_str.split()) == 3:
+            self.cron_str = f"0 0 {self.cron_str}"
+
+    def _validate_cron_str(self):
+        today = dt.date.today()
+        try:
+            cron = croniter.croniter(
+                self.cron_str, dt.datetime(today.year, today.month, today.day)
+            )
+        except ValueError:
+            raise ValueError(f"Invalid cron string: {self.cron_str}")
+        if cron.get_next(dt.datetime) < dt.datetime(
+            today.year, today.month, today.day + 1
+        ):
+            raise ValueError("Intraday frequencies are not supported.")
 
     def get_next_date(self, date: dt.date) -> dt.date:
         """
@@ -28,8 +40,7 @@ class Frequency:
         :param date: Current date.
         :return: Next date.
         """
-        cron_str = f"0 0 {self.day} {self.month} {self.day_of_week}"
-        cron = croniter.croniter(cron_str, dt.datetime.combine(date, dt.time()))
+        cron = croniter.croniter(self.cron_str, dt.datetime.combine(date, dt.time()))
         return cron.get_next(dt.datetime).date()
 
     def get_n_dates(self, start_date: dt.date, end_date: dt.date) -> int:
@@ -48,8 +59,10 @@ class Frequency:
                 n_dates += 1
         return n_dates
 
-    def __repr__(self) -> str:
-        return f"{self.day} {self.month} {self.day_of_week}"
+    def __repr__(self):
+        if len(self.cron_str.split()) == 5:
+            return " ".join(self.cron_str.split()[2:])
+        return self.cron_str
 
 
 @dataclass
@@ -59,7 +72,7 @@ class Habit:
 
     Example:
       name: "Sample habit"
-      frequency: Frequency("*", "*", "*")
+      frequency: Frequency("* * *")
       is_measurable: False
     """
 

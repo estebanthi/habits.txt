@@ -1,10 +1,11 @@
 import datetime as dt
 
+import habits_txt.models as models
 import habits_txt.records_query as records_query
 
 
 def test_get_most_recent_record():
-    frequency = records_query.models.Frequency("*", "*", "*")
+    frequency = models.Frequency("* * *")
     habit1 = records_query.models.Habit("Habit 1", frequency)
     habit2 = records_query.models.Habit("Habit 2", frequency)
     record1 = records_query.models.HabitRecord(dt.date(2024, 1, 1), habit1.name, False)
@@ -28,7 +29,7 @@ def test_get_most_recent_record():
 
 
 def test_get_most_recent_and_completed_record():
-    frequency = records_query.models.Frequency("*", "*", "*")
+    frequency = models.Frequency("* * *")
     habit1 = records_query.models.Habit("Habit 1", frequency)
     record1 = records_query.models.HabitRecord(dt.date(2024, 1, 1), habit1.name, False)
     record2 = records_query.models.HabitRecord(dt.date(2024, 1, 2), habit1.name, True)

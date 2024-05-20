@@ -53,7 +53,7 @@ class TrackDirective(Directive):
     def __repr__(self):
         return (
             super().__repr__()
-            + f" {self.frequency} {defaults.MEASURABLE_KEYWORD if self.is_measurable else ''}"
+            + f" ({self.frequency}) {defaults.MEASURABLE_KEYWORD if self.is_measurable else ''}"
         )
 
 

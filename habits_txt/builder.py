@@ -36,9 +36,9 @@ def _get_tracked_habits_at_date(
     :return: List of tracked habits.
 
     Example:
-    >>> directive1 = directives.TrackDirective(dt.datetime(2024, 1, 1), "Habit 1", models.Frequency("*", "*", "*"))
-    >>> directive2 = directives.TrackDirective(dt.datetime(2024, 1, 2), "Habit 2", models.Frequency("*", "*", "*"))
-    >>> directive3 = directives.TrackDirective(dt.datetime(2024, 1, 3), "Habit 3", models.Frequency("*", "*", "*"))
+    >>> directive1 = directives.TrackDirective(dt.datetime(2024, 1, 1), "Habit 1", models.Frequency("* * *"))
+    >>> directive2 = directives.TrackDirective(dt.datetime(2024, 1, 2), "Habit 2", models.Frequency("* * *"))
+    >>> directive3 = directives.TrackDirective(dt.datetime(2024, 1, 3), "Habit 3", models.Frequency("* * *"))
     >>> tracked_habits = _get_tracked_habits_at_date([directive1, directive2, directive3], dt.datetime(2024, 1, 2))
     >>> print(tracked_habits)
     [Habit 1, Habit 2]
@@ -72,9 +72,9 @@ def _check_track_directive_is_valid(
     :param tracked_habits: Tracked habits.
 
     Example:
-    >>> directive1 = directives.TrackDirective(dt.datetime(2024, 1, 1), "Habit 1", models.Frequency("*", "*", "*"))
-    >>> directive2 = directives.TrackDirective(dt.datetime(2024, 1, 2), "Habit 2", models.Frequency("*", "*", "*"))
-    >>> tracked_habits = {models.Habit("Habit 1", models.Frequency("*", "*", "*"))}
+    >>> directive1 = directives.TrackDirective(dt.datetime(2024, 1, 1), "Habit 1", models.Frequency("* * *"))
+    >>> directive2 = directives.TrackDirective(dt.datetime(2024, 1, 2), "Habit 2", models.Frequency("* * *"))
+    >>> tracked_habits = {models.Habit("Habit 1", models.Frequency("* * *"))}
     >>> _check_track_directive_is_valid(directive2, tracked_habits)
     """
     if directive.habit_name in {habit.name for habit in tracked_habits}:
@@ -95,7 +95,7 @@ def _check_untrack_directive_is_valid(
 
     Example:
     >>> directive = directives.UntrackDirective(dt.datetime(2024, 1, 1), "Habit 1")
-    >>> tracked_habits = {models.Habit("Habit 1", models.Frequency("*", "*", "*"))}
+    >>> tracked_habits = {models.Habit("Habit 1", models.Frequency("* * *"))}
     >>> _check_untrack_directive_is_valid(directive, tracked_habits)
     """
     if directive.habit_name not in {habit.name for habit in tracked_habits}:
@@ -117,7 +117,7 @@ def _remove_habit_from_state(
 
     Example:
     >>> habit_name = "Habit 1"
-    >>> tracked_habits = {models.Habit("Habit 1", models.Frequency("*", "*", "*"))}
+    >>> tracked_habits = {models.Habit("Habit 1", models.Frequency("* * *"))}
     >>> updated_tracked_habits = _remove_habit_from_state(habit_name, tracked_habits)
     >>> print(updated_tracked_habits)
     []
@@ -135,7 +135,7 @@ def _build_habit_from_track_directive(
     :return: Built habit.
 
     Example:
-    >>> directive = directives.TrackDirective(dt.datetime(2024, 1, 1), "Habit 1", models.Frequency("*", "*", "*"))
+    >>> directive = directives.TrackDirective(dt.datetime(2024, 1, 1), "Habit 1", models.Frequency("* * *"))
     >>> habit = _build_habit_from_track_directive(directive)
     >>> print(habit)
     Habit 1
@@ -212,7 +212,7 @@ def _check_record_directive_is_valid(
 
     Example:
     >>> directive = directives.RecordDirective(dt.datetime(2024, 1, 1), "Habit 1", False)
-    >>> tracked_habits = {models.Habit("Habit 1", models.Frequency("*", "*", "*"))}
+    >>> tracked_habits = {models.Habit("Habit 1", models.Frequency("* * *"))}
     >>> records = [models.HabitRecord(dt.datetime(2024, 1, 1), "Habit 2", True)]
     >>> _check_record_directive_is_valid(directive, tracked_habits, records)
     """
@@ -260,8 +260,8 @@ def get_state_at_date(
     :return: List of tracked habits, list of records, list of matches.
 
     Example:
-    >>> directive1 = directives.TrackDirective(dt.datetime(2024, 1, 1), "Habit 1", models.Frequency("*", "*", "*"))
-    >>> directive2 = directives.TrackDirective(dt.datetime(2024, 1, 2), "Habit 2", models.Frequency("*", "*", "*"))
+    >>> directive1 = directives.TrackDirective(dt.datetime(2024, 1, 1), "Habit 1", models.Frequency("* * *"))
+    >>> directive2 = directives.TrackDirective(dt.datetime(2024, 1, 2), "Habit 2", models.Frequency("* * *"))
     >>> directive3 = directives.RecordDirective(dt.datetime(2024, 1, 1), "Habit 1", False)
     >>> tracked_habits, records, habits_records_matches = \
     get_state_at_date([directive1, directive2, directive3], dt.datetime(2024, 1, 1))
@@ -313,9 +313,9 @@ def get_track_untrack_record_matches_at_date(
     :return: List of matches.
 
     Example:
-    >>> directive1 = directives.TrackDirective(dt.datetime(2024, 1, 1), "Habit 1", models.Frequency("*", "*", "*"))
+    >>> directive1 = directives.TrackDirective(dt.datetime(2024, 1, 1), "Habit 1", models.Frequency("* * *"))
     >>> directive2 = directives.UntrackDirective(dt.datetime(2024, 1, 2), "Habit 1")
-    >>> directive3 = directives.TrackDirective(dt.datetime(2024, 1, 2), "Habit 2", models.Frequency("*", "*", "*"))
+    >>> directive3 = directives.TrackDirective(dt.datetime(2024, 1, 2), "Habit 2", models.Frequency("* * *"))
     >>> directive4 = directives.RecordDirective(dt.datetime(2024, 1, 1), "Habit 1", False)
     >>> matches = get_track_untrack_record_matches_at_date(\
     [directive1, directive2, directive3, directive4], dt.datetime(2024, 2, 1))

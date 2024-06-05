@@ -55,7 +55,7 @@ def test_log_errors(caplog):
 
 def test_fill_day(monkeypatch):
     monkeypatch.setattr(journal, "get_state_at_date", lambda x, y: ([], [], []))
-    assert journal._fill_day("journal_file", dt.date(2021, 1, 1)) == []
+    assert journal._fill_day("journal_file", dt.date(2021, 1, 1)) == ([], False)
 
     habits = [models.Habit("habit1", models.Frequency("* * *"))]
     records = []
@@ -65,31 +65,38 @@ def test_fill_day(monkeypatch):
         "get_state_at_date",
         lambda x, y: (habits, records, habits_records_matches),
     )
-    assert journal._fill_day("journal_file", dt.date(2021, 1, 1)) == [
-        models.HabitRecord(dt.date(2021, 1, 1), "habit1", None)
-    ]
+    assert journal._fill_day("journal_file", dt.date(2021, 1, 1)) == (
+        [models.HabitRecord(dt.date(2021, 1, 1), "habit1", None)],
+        False,
+    )
 
     with mock.patch("builtins.input", side_effect=["yes"]) as mock_input:
-        assert journal._fill_day("journal_file", dt.date(2021, 1, 1), True) == [
-            models.HabitRecord(dt.date(2021, 1, 1), "habit1", True)
-        ]
+        assert journal._fill_day("journal_file", dt.date(2021, 1, 1), True) == (
+            [models.HabitRecord(dt.date(2021, 1, 1), "habit1", True)],
+            False,
+        )
         mock_input.assert_called_once()
         mock_input.reset_mock()
         mock_input.side_effect = ["False", "no"]
-        assert journal._fill_day("journal_file", dt.date(2021, 1, 1), True) == [
-            models.HabitRecord(dt.date(2021, 1, 1), "habit1", False)
-        ]
+        assert journal._fill_day("journal_file", dt.date(2021, 1, 1), True) == (
+            [models.HabitRecord(dt.date(2021, 1, 1), "habit1", False)],
+            False,
+        )
         assert mock_input.call_count == 2
 
     with mock.patch("builtins.input", side_effect=["s"]) as mock_input:
-        assert journal._fill_day("journal_file", dt.date(2021, 1, 1), True) == []
+        assert journal._fill_day("journal_file", dt.date(2021, 1, 1), True) == (
+            [],
+            False,
+        )
         mock_input.assert_called_once()
         mock_input.reset_mock()
 
     with mock.patch("builtins.input", side_effect=["a"]) as mock_input:
-        assert journal._fill_day("journal_file", dt.date(2021, 1, 1), True) == [
-            models.HabitRecord(dt.date(2021, 1, 1), "habit1", None)
-        ]
+        assert journal._fill_day("journal_file", dt.date(2021, 1, 1), True) == (
+            [models.HabitRecord(dt.date(2021, 1, 1), "habit1", None)],
+            False,
+        )
         mock_input.assert_called_once()
         mock_input.reset_mock()
 
@@ -99,7 +106,7 @@ def test_fill_day(monkeypatch):
         "get_state_at_date",
         lambda x, y: (habits, records, habits_records_matches),
     )
-    assert journal._fill_day("journal_file", dt.date(2021, 1, 1)) == []
+    assert journal._fill_day("journal_file", dt.date(2021, 1, 1)) == ([], False)
 
     records = [models.HabitRecord(dt.date(2021, 1, 1), "habit1", False)]
     monkeypatch.setattr(
@@ -107,16 +114,16 @@ def test_fill_day(monkeypatch):
         "get_state_at_date",
         lambda x, y: (habits, records, habits_records_matches),
     )
-    assert journal._fill_day("journal_file", dt.date(2021, 1, 1)) == []
+    assert journal._fill_day("journal_file", dt.date(2021, 1, 1)) == ([], False)
 
 
 @freeze_time("2021-01-02")
 def test_fill_range(monkeypatch):
     mock_fill_day = mock.MagicMock()
     mock_fill_day.side_effect = [
-        ["record1"],
-        ["record2"],
-        ["record3"],
+        (["record1"], False),
+        (["record2"], False),
+        (["record3"], False),
     ]
     monkeypatch.setattr(journal, "_fill_day", mock_fill_day)
     assert journal._fill_range(
@@ -136,9 +143,9 @@ def test_fill_range(monkeypatch):
 
     mock_fill_day.reset_mock()
     mock_fill_day.side_effect = [
-        ["record1"],
-        ["record2"],
-        ["record3"],
+        (["record1"], False),
+        (["record2"], False),
+        (["record3"], False),
     ]
     monkeypatch.setattr(journal, "_get_first_date", lambda x: dt.date(2021, 1, 2))
     assert journal._fill_range("journal_file", None, dt.date(2021, 1, 3)) == [
@@ -154,9 +161,9 @@ def test_fill_range(monkeypatch):
 
     mock_fill_day.reset_mock()
     mock_fill_day.side_effect = [
-        ["record1"],
-        ["record2"],
-        ["record3"],
+        (["record1"], False),
+        (["record2"], False),
+        (["record3"], False),
     ]
     assert journal._fill_range("journal_file", dt.date(2021, 1, 1), None) == [
         "record1",
@@ -171,16 +178,35 @@ def test_fill_range(monkeypatch):
 
     mock_fill_day.reset_mock()
     mock_fill_day.side_effect = [
-        ["record1"],
-        ["record2"],
-        ["record3"],
+        (["record1"], False),
+        (["record2"], False),
+        (["record3"], False),
     ]
     assert journal._fill_range("journal_file", None, None) == []
     journal._fill_day.assert_not_called()
 
+    mock_fill_day.reset_mock()
+    mock_fill_day.side_effect = [
+        (["record1"], False),
+        (["record2"], True),
+        (["record3"], False),
+    ]
+    assert journal._fill_range(
+        "journal_file", dt.date(2021, 1, 1), dt.date(2021, 1, 3)
+    ) == [
+        "record1",
+        "record2",
+    ]
+    journal._fill_day.assert_has_calls(
+        [
+            mock.call("journal_file", dt.date(2021, 1, 1), False),
+            mock.call("journal_file", dt.date(2021, 1, 2), False),
+        ]
+    )
+
 
 def test_fill(monkeypatch):
-    monkeypatch.setattr(journal, "_fill_day", lambda x, y, z: ["record"])
+    monkeypatch.setattr(journal, "_fill_day", lambda x, y, z: (["record"], False))
     assert journal.fill("journal_file", dt.date(2021, 1, 1), None, None) == ["record"]
 
     monkeypatch.setattr(journal, "_fill_range", lambda x, y, z, a: ["record"])

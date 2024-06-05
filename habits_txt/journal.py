@@ -66,7 +66,7 @@ def fill(
     """
     if start_date or end_date:
         return _fill_range(journal_file, start_date, end_date, interactive)
-    return _fill_day(journal_file, date, interactive)
+    return _fill_day(journal_file, date, interactive)[0]
 
 
 def _fill_range(
@@ -83,7 +83,10 @@ def _fill_range(
         return []
     records_fill = []
     for date in get_date_range(start_date, end_date, dt.timedelta(days=1)):
-        records_fill += _fill_day(journal_file, date, interactive)
+        records, stop = _fill_day(journal_file, date, interactive)
+        records_fill.extend(records)
+        if stop:
+            break
     return records_fill
 
 
@@ -96,14 +99,14 @@ def _fill_day(
     journal_file: str,
     date: dt.date,
     interactive: bool = False,
-) -> list[models.HabitRecord]:
-    records_fill = []
+) -> typing.Tuple[list[models.HabitRecord], bool]:
+    records_fill: list[models.HabitRecord] = []
     tracked_habits, records, habits_records_matches = get_state_at_date(
         journal_file, date
     )
     if not tracked_habits:
         logging.info(f"{defaults.COMMENT_CHAR} No habits tracked")
-        return []
+        return [], False
     for habit in sorted(tracked_habits, key=lambda habit_: habit_.name):
         habit_records = [
             record for record in records if record.habit_name == habit.name
@@ -130,13 +133,16 @@ def _fill_day(
                         break
                     elif value == "a":
                         break
+                    elif value == "save":
+                        return records_fill, True
                     try:
                         parsed_value = parser.parse_value_str(value)
                         value_is_valid = True
                     except exceptions.ParseError:
                         logging.error(
                             f"Value must be a {"number" if habit.is_measurable else "boolean"}.\n"
-                            f"(or 's' to skip, or 'a' to append to the journal but fill manually later)"
+                            "(or 's' to skip, 'a' to append to the journal but fill manually later, and "
+                            "'save' to save and exit)"
                         )
                 record = models.HabitRecord(date, habit.name, parsed_value)
             else:
@@ -145,7 +151,7 @@ def _fill_day(
             if append:
                 records_fill.append(record)
 
-    return records_fill
+    return records_fill, False
 
 
 def _filter_state(

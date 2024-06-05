@@ -12,6 +12,7 @@ packages = [
 python = ">=3.12,<3.13"
 croniter = "^2.0.5"
 click = "^8.1.7"
+freezegun = "^1.5.1"
 
 [tool.poetry.scripts]
 hbtxt = "bin.hbtxt:main"

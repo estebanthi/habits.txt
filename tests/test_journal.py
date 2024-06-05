@@ -169,6 +169,15 @@ def test_fill_range(monkeypatch):
         ]
     )
 
+    mock_fill_day.reset_mock()
+    mock_fill_day.side_effect = [
+        ["record1"],
+        ["record2"],
+        ["record3"],
+    ]
+    assert journal._fill_range("journal_file", None, None) == []
+    journal._fill_day.assert_not_called()
+
 
 def test_fill(monkeypatch):
     monkeypatch.setattr(journal, "_fill_day", lambda x, y, z: ["record"])

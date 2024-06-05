@@ -104,7 +104,7 @@ def _fill_day(
     if not tracked_habits:
         logging.info(f"{defaults.COMMENT_CHAR} No habits tracked")
         return []
-    for habit in tracked_habits:
+    for habit in sorted(tracked_habits, key=lambda habit_: habit_.name):
         habit_records = [
             record for record in records if record.habit_name == habit.name
         ]

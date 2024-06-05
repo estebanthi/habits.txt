@@ -60,9 +60,7 @@ class Frequency:
         return n_dates
 
     def __repr__(self):
-        if len(self.cron_str.split()) == 5:
-            return " ".join(self.cron_str.split()[2:])
-        return self.cron_str
+        return " ".join(self.cron_str.split()[2:])
 
     def __eq__(self, other):
         return self.cron_str == other.cron_str

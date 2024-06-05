@@ -24,6 +24,20 @@ def cli():
     callback=lambda ctx, param, value: value.date(),
     help="Date to use (defaults to today)",
 )
+@click.option(
+    "-s",
+    "--start",
+    type=click.DateTime(formats=["%Y-%m-%d"]),
+    callback=lambda ctx, param, value: value.date() if value else None,
+    help="Start date",
+)
+@click.option(
+    "-e",
+    "--end",
+    type=click.DateTime(formats=["%Y-%m-%d"]),
+    callback=lambda ctx, param, value: value.date() if value else None,
+    help="End date",
+)
 @click.option("-i", "--interactive", is_flag=True, help="Interactive mode")
 @click.option(
     "-t",
@@ -37,7 +51,7 @@ def cli():
     is_flag=True,
     help="Write output to the bottom of the journal file",
 )
-def fill(file, date, interactive, write_top, write_bottom):
+def fill(file, date, start, end, interactive, write_top, write_bottom):
     """
     Fill habits on a given date using FILE.
 
@@ -45,9 +59,11 @@ def fill(file, date, interactive, write_top, write_bottom):
     If you want to skip a habit while in interactive mode, just press 's'.
     If you want to skip a habit but still append it to the journal (for manual filling later), press 'a'.
     """
-    records = journal_.fill_day(
+    records = journal_.fill(
         file.name,
         date,
+        start,
+        end,
         interactive,
     )
     if records:
@@ -57,6 +73,7 @@ def fill(file, date, interactive, write_top, write_bottom):
         if write_top:
             content = file.read()
             file.seek(0)
+            records_str = "\n".join(reversed(records_str.split("\n")))  # reverse lines
             file.write(records_str + "\n\n" + content)
         elif write_bottom:
             file.write("\n" + records_str + "\n")

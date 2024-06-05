@@ -74,3 +74,11 @@ def test_frequency_get_n_dates():
     end_date = dt.date(2024, 2, 1)
     n_dates = frequency.get_n_dates(start_date, end_date)
     assert n_dates == 2
+
+
+def test_frequency_repr():
+    frequency = models.Frequency("0 0 * * *")
+    assert frequency.__repr__() == "* * *"
+
+    frequency = models.Frequency("* * *")
+    assert frequency.__repr__() == "* * *"

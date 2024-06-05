@@ -8,6 +8,7 @@ import habits_txt.exceptions as exceptions
 import habits_txt.models as models
 import habits_txt.parser as parser
 import habits_txt.records_query as records_query
+from habits_txt.date import get_date_range
 
 
 def get_state_at_date(journal_file: str, date: dt.date) -> typing.Tuple[
@@ -46,17 +47,56 @@ def _log_errors(errors: list[str]):
         logging.error(error)
 
 
-def fill_day(
-    journal_file: str, date: dt.date, interactive: bool = False
+def fill(
+    journal_file: str,
+    date: dt.date,
+    start_date: dt.date | None,
+    end_date: dt.date | None,
+    interactive: bool = False,
 ) -> list[models.HabitRecord]:
     """
     Fill a day in the journal.
 
     :param journal_file: Path to the journal file.
     :param date: Date to fill.
+    :param start_date: Start date to fill from.
+    :param end_date: End date to fill to.
     :param interactive: Interactive mode.
     :return: Journal file.
     """
+    if start_date or end_date:
+        return _fill_range(journal_file, start_date, end_date, interactive)
+    return _fill_day(journal_file, date, interactive)
+
+
+def _fill_range(
+    journal_file: str,
+    start_date: dt.date | None,
+    end_date: dt.date | None,
+    interactive: bool = False,
+) -> list[models.HabitRecord]:
+    if start_date and not end_date:
+        end_date = dt.date.today()
+    if end_date and not start_date:
+        start_date = _get_first_date(journal_file)
+    if not start_date or not end_date:
+        return []
+    records_fill = []
+    for date in get_date_range(start_date, end_date, dt.timedelta(days=1)):
+        records_fill += _fill_day(journal_file, date, interactive)
+    return records_fill
+
+
+def _get_first_date(journal_file: str) -> dt.date:
+    _, records, _ = get_state_at_date(journal_file, dt.date.today())
+    return min(record.date for record in records)
+
+
+def _fill_day(
+    journal_file: str,
+    date: dt.date,
+    interactive: bool = False,
+) -> list[models.HabitRecord]:
     records_fill = []
     tracked_habits, records, habits_records_matches = get_state_at_date(
         journal_file, date

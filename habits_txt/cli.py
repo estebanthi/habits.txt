@@ -38,6 +38,7 @@ def cli():
     callback=lambda ctx, param, value: value.date() if value else None,
     help="End date",
 )
+@click.option("-m", "--missing", is_flag=True, help="Fill missing records")
 @click.option("-i", "--interactive", is_flag=True, help="Interactive mode")
 @click.option(
     "-t",
@@ -51,7 +52,7 @@ def cli():
     is_flag=True,
     help="Write output to the bottom of the journal file",
 )
-def fill(file, date, start, end, interactive, write_top, write_bottom):
+def fill(file, date, start, end, missing, interactive, write_top, write_bottom):
     """
     Fill habits on a given date using FILE.
 
@@ -59,6 +60,9 @@ def fill(file, date, start, end, interactive, write_top, write_bottom):
     If you want to skip a habit while in interactive mode, just press 's'.
     If you want to skip a habit but still append it to the journal (for manual filling later), press 'a'.
     """
+    if missing:
+        start = None
+        end = dt.date.today()
     records = journal_.fill(
         file.name,
         date,

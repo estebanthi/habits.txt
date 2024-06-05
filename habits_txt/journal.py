@@ -124,7 +124,7 @@ def _fill_day(
                 value_is_valid = False
                 parsed_value = None
                 while not value_is_valid:
-                    value = input(f"{habit.name}: ")
+                    value = input(f"{date} - {habit.name}: ")
                     if value == "s":
                         append = False
                         break

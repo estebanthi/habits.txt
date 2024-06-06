@@ -73,6 +73,8 @@ def fill(file, date, start, end, missing, interactive, write_top, write_bottom):
     )
     if records:
         records_str = "\n".join([_style_record(record) for record in records])
+        comment = f"{defaults.COMMENT_CHAR} Filled on {dt.datetime.now().strftime(defaults.DATE_FMT)}"
+        records_str = f"{comment}\n{records_str}"
         if write_top or write_bottom:
             records_str = click.unstyle(records_str)
         if write_top:

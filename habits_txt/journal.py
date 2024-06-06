@@ -2,6 +2,8 @@ import datetime as dt
 import logging
 import typing
 
+import click
+
 import habits_txt.builder as builder
 import habits_txt.defaults as defaults
 import habits_txt.exceptions as exceptions
@@ -127,7 +129,9 @@ def _fill_day(
                 value_is_valid = False
                 parsed_value = None
                 while not value_is_valid:
-                    value = input(f"{date} - {habit.name}: ")
+                    value = click.prompt(
+                        f"{click.style(date, fg='blue')} - {click.style(habit.name, fg='green')}: "
+                    )
                     if value == "s":
                         append = False
                         break

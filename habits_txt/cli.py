@@ -10,6 +10,7 @@ import habits_txt.models as models_
 
 
 @click.group()
+@click.version_option()
 def cli():
     pass
 

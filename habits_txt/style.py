@@ -10,7 +10,7 @@ import habits_txt.models as models_
 class Colors(Enum):
     HABIT_NAME_fg = "green"
     HABIT_NAME_bg = None
-    HABIT_NAME_bold = True
+    HABIT_NAME_bold = False
 
     DATE_fg = "blue"
     DATE_bg = None

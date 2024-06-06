@@ -2,6 +2,8 @@ import datetime as dt
 import logging
 import typing
 
+import click
+
 import habits_txt.builder as builder
 import habits_txt.defaults as defaults
 import habits_txt.exceptions as exceptions
@@ -9,6 +11,7 @@ import habits_txt.models as models
 import habits_txt.parser as parser
 import habits_txt.records_query as records_query
 from habits_txt.date import get_date_range
+from habits_txt.style import style_habit_input
 
 
 def get_state_at_date(journal_file: str, date: dt.date) -> typing.Tuple[
@@ -127,7 +130,12 @@ def _fill_day(
                 value_is_valid = False
                 parsed_value = None
                 while not value_is_valid:
-                    value = input(f"{date} - {habit.name}: ")
+                    value = click.prompt(
+                        style_habit_input(date, habit.name),
+                        default="",
+                        show_default=False,
+                        show_choices=False,
+                    )
                     if value == "s":
                         append = False
                         break

@@ -70,7 +70,7 @@ def test_fill_day(monkeypatch):
         False,
     )
 
-    with mock.patch("builtins.input", side_effect=["yes"]) as mock_input:
+    with mock.patch("click.prompt", side_effect=["yes"]) as mock_input:
         assert journal._fill_day("journal_file", dt.date(2021, 1, 1), True) == (
             [models.HabitRecord(dt.date(2021, 1, 1), "habit1", True)],
             False,
@@ -84,7 +84,7 @@ def test_fill_day(monkeypatch):
         )
         assert mock_input.call_count == 2
 
-    with mock.patch("builtins.input", side_effect=["s"]) as mock_input:
+    with mock.patch("click.prompt", side_effect=["s"]) as mock_input:
         assert journal._fill_day("journal_file", dt.date(2021, 1, 1), True) == (
             [],
             False,
@@ -92,7 +92,7 @@ def test_fill_day(monkeypatch):
         mock_input.assert_called_once()
         mock_input.reset_mock()
 
-    with mock.patch("builtins.input", side_effect=["a"]) as mock_input:
+    with mock.patch("click.prompt", side_effect=["a"]) as mock_input:
         assert journal._fill_day("journal_file", dt.date(2021, 1, 1), True) == (
             [models.HabitRecord(dt.date(2021, 1, 1), "habit1", None)],
             False,

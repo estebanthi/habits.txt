@@ -6,7 +6,7 @@ import click
 import habits_txt.config as config_
 import habits_txt.defaults as defaults
 import habits_txt.journal as journal_
-import habits_txt.models as models_
+import habits_txt.style as style_
 
 
 @click.group()
@@ -72,7 +72,9 @@ def fill(file, date, start, end, missing, interactive, write_top, write_bottom):
         interactive,
     )
     if records:
-        records_str = "\n".join([_style_record(record) for record in records])
+        records_str = "\n".join(
+            [style_.style_habit_record(record) for record in records]
+        )
         comment = f"{defaults.COMMENT_CHAR} Filled on {dt.datetime.now().strftime(defaults.DATE_FMT)}"
         records_str = f"{comment}\n{records_str}"
         if write_top or write_bottom:
@@ -114,7 +116,9 @@ def filter(file, start, end, name):
     """
     records = journal_.filter(file.name, start, end, name)
     if records:
-        records_str = "\n".join([_style_record(record) for record in records])
+        records_str = "\n".join(
+            [style_.style_habit_record(record) for record in records]
+        )
         click.echo(records_str)
     else:
         click.echo(f"{defaults.COMMENT_CHAR} No records found")
@@ -145,7 +149,7 @@ def info(file, start, end, name):
     habit_completion_infos = journal_.info(file.name, start, end, name)
     if habit_completion_infos:
         for habit_completion_info in habit_completion_infos:
-            click.echo(_style_completion_info(habit_completion_info))
+            click.echo(style_.style_completion_info(habit_completion_info))
             click.echo()
     else:
         click.echo(f"{defaults.COMMENT_CHAR} No records found")
@@ -230,83 +234,3 @@ def check(file, date):
             fg="green" if is_valid else "red",
         )
     )
-
-
-def _style_record(record: models_.HabitRecord) -> str:
-    return " ".join(
-        [
-            click.style(
-                dt.datetime.strftime(record.date, defaults.DATE_FMT), fg="blue"
-            ),
-            f'"{click.style(record.habit_name, fg="green")}"',
-            click.style(record._str_value(), fg="yellow"),
-        ]
-    )
-
-
-def _style_completion_info(habit_completion_info: models_.HabitCompletionInfo) -> str:
-    def process_average(x):
-        return (
-            round(x, 2)
-            if habit_completion_info.habit.is_measurable
-            else str(x * 100) + "%"
-        )
-
-    value_str = (
-        "Average value"
-        if habit_completion_info.habit.is_measurable
-        else "Completion rate"
-    )
-
-    string = "\n".join(
-        [
-            click.style(habit_completion_info.habit.name, fg="green")
-            + " ("
-            + click.style(
-                f"{habit_completion_info.start_date} - {habit_completion_info.end_date}",
-                fg="blue",
-            )
-            + "):",
-            click.style(
-                "  Total records in journal:",
-                fg="cyan",
-            )
-            + click.style(
-                f" {habit_completion_info.n_records}",
-                fg="bright_cyan",
-            ),
-            click.style(
-                "  Total records expected:",
-                fg="cyan",
-            )
-            + click.style(
-                f" {habit_completion_info.n_records_expected}",
-                fg="bright_cyan",
-            ),
-            click.style(
-                "  Missing records:",
-                fg="red",
-            )
-            + click.style(
-                f" {habit_completion_info.n_records_expected - habit_completion_info.n_records}",
-                fg="bright_red",
-            ),
-            click.style(
-                f"  {value_str} (among expected records):",
-                fg="magenta",
-            )
-            + click.style(
-                f" {process_average(habit_completion_info.average_total)}",
-                fg="bright_magenta",
-            ),
-            click.style(
-                f"  {value_str} (among written records):",
-                fg="magenta",
-            )
-            + click.style(
-                f" {process_average(habit_completion_info.average_present)}",
-                fg="bright_magenta",
-            ),
-        ]
-    )
-    return string

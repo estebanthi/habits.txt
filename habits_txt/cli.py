@@ -53,7 +53,15 @@ def cli():
     is_flag=True,
     help="Write output to the bottom of the journal file",
 )
-def fill(file, date, start, end, missing, interactive, write_top, write_bottom):
+@click.option(
+    "-n",
+    "--no-comment",
+    is_flag=True,
+    help="Do not add a comment to the output",
+)
+def fill(
+    file, date, start, end, missing, interactive, write_top, write_bottom, no_comment
+):
     """
     Fill habits on a given date using FILE.
 
@@ -76,7 +84,7 @@ def fill(file, date, start, end, missing, interactive, write_top, write_bottom):
             [style_.style_habit_record(record) for record in records]
         )
         comment = f"{defaults.COMMENT_CHAR} Filled on {dt.datetime.now().strftime(defaults.DATE_FMT)}"
-        records_str = f"{comment}\n{records_str}"
+        records_str = f"{comment}\n{records_str}" if not no_comment else records_str
         if write_top or write_bottom:
             records_str = click.unstyle(records_str)
         if write_top:

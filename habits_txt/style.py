@@ -81,7 +81,7 @@ def style_completion_info(habit_completion_info: models_.HabitCompletionInfo) ->
         return (
             round(x, 2)
             if habit_completion_info.habit.is_measurable
-            else str(x * 100) + "%"
+            else str(round(x * 100, 2)) + "%"
         )
 
     value_str = (

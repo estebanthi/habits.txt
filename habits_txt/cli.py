@@ -17,7 +17,12 @@ def cli():
 
 
 def _parse_date_callback(ctx, param, value):
-    return parse(value).date() if value else None
+    try:
+        return parse(value).date() if value else None
+    except Exception:
+        raise click.BadParameter(
+            "Invalid date format. Use YYYY-MM-DD or natural language"
+        )
 
 
 @cli.command()
@@ -252,9 +257,8 @@ def config_edit():
 @click.option(
     "-d",
     "--date",
-    type=click.DateTime(formats=["%Y-%m-%d"]),
     default=dt.date.today().strftime(defaults.DATE_FMT),
-    callback=lambda ctx, param, value: value.date(),
+    callback=_parse_date_callback,
 )
 def check(file, date):
     """

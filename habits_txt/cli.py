@@ -127,7 +127,13 @@ def fill(
     callback=_parse_date_callback,
     help="End date",
 )
-@click.option("-n", "--name", help="Filter by habit name")
+@click.option(
+    "-n",
+    "--name",
+    help="Filter by habit name. "
+    "You can specify multiple names using multiple --name flags",
+    multiple=True,
+)
 def filter(file, start, end, name):
     """
     Filter habit records using FILE.
@@ -159,7 +165,13 @@ def filter(file, start, end, name):
     callback=_parse_date_callback,
     help="End date",
 )
-@click.option("-n", "--name", help="Filter by habit name", multiple=True)
+@click.option(
+    "-n",
+    "--name",
+    help="Filter by habit name. "
+    "You can specify multiple names using multiple --name flags",
+    multiple=True,
+)
 def info(file, start, end, name):
     """
     Get information about habit records using FILE.
@@ -193,11 +205,18 @@ def info(file, start, end, name):
     callback=_parse_date_callback,
     help="End date",
 )
-@click.option("-n", "--name", help="Filter by habit name", multiple=True)
+@click.option(
+    "-n",
+    "--name",
+    help="Filter by habit name. "
+    "You can specify multiple names using multiple --name flags",
+    multiple=True,
+)
 @click.option(
     "--expected",
     is_flag=True,
-    help="Compute completion rate using expected records instead of written records",
+    help="Compute completion rate using expected records instead of written records "
+    "(i.e. consider a missing record as a failure or a 0 value instead of skipping it)",
 )
 def chart(file, interval, start, end, name, expected):
     """

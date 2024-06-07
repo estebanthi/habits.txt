@@ -29,6 +29,7 @@ repos:
         args: [--ignore-missing-imports]
         additional_dependencies:
           - types-croniter
+          - types-dateparser
   - repo: https://github.com/pycqa/isort
     rev: 5.13.2
     hooks:

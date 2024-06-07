@@ -13,6 +13,7 @@ python = ">=3.12,<3.13"
 croniter = "^2.0.5"
 click = "^8.1.7"
 freezegun = "^1.5.1"
+dateparser = "^1.2.0"
 
 [tool.poetry.scripts]
 hbtxt = "bin.hbtxt:main"
@@ -27,6 +28,7 @@ black = "^24.4.2"
 mypy = "^1.10.0"
 types-croniter = "^2.0.0.20240423"
 pre-commit = "^3.7.1"
+types-dateparser = "^1.2.0.20240420"
 
 
 [tool.poetry.group.build.dependencies]

@@ -2,6 +2,7 @@ import datetime as dt
 import os
 
 import click
+from dateparser import parse
 
 import habits_txt.config as config_
 import habits_txt.defaults as defaults
@@ -15,28 +16,29 @@ def cli():
     pass
 
 
+def _parse_date_callback(ctx, param, value):
+    return parse(value).date() if value else None
+
+
 @cli.command()
 @click.argument("file", type=click.File("r+"))
 @click.option(
     "-d",
     "--date",
-    type=click.DateTime(formats=["%Y-%m-%d"]),
     default=dt.date.today().strftime(defaults.DATE_FMT),
-    callback=lambda ctx, param, value: value.date(),
+    callback=_parse_date_callback,
     help="Date to use (defaults to today)",
 )
 @click.option(
     "-s",
     "--start",
-    type=click.DateTime(formats=["%Y-%m-%d"]),
-    callback=lambda ctx, param, value: value.date() if value else None,
+    callback=_parse_date_callback,
     help="Start date",
 )
 @click.option(
     "-e",
     "--end",
-    type=click.DateTime(formats=["%Y-%m-%d"]),
-    callback=lambda ctx, param, value: value.date() if value else None,
+    callback=_parse_date_callback,
     help="End date",
 )
 @click.option("-m", "--missing", is_flag=True, help="Fill missing records")
@@ -105,16 +107,14 @@ def fill(
 @click.option(
     "-s",
     "--start",
-    type=click.DateTime(formats=["%Y-%m-%d"]),
-    callback=lambda ctx, param, value: value.date() if value else None,
+    callback=_parse_date_callback,
     help="Start date",
 )
 @click.option(
     "-e",
     "--end",
-    type=click.DateTime(formats=["%Y-%m-%d"]),
     default=dt.date.today().strftime(defaults.DATE_FMT),
-    callback=lambda ctx, param, value: value.date(),
+    callback=_parse_date_callback,
     help="End date",
 )
 @click.option("-n", "--name", help="Filter by habit name")
@@ -137,16 +137,14 @@ def filter(file, start, end, name):
 @click.option(
     "-s",
     "--start",
-    type=click.DateTime(formats=["%Y-%m-%d"]),
-    callback=lambda ctx, param, value: value.date() if value else None,
+    callback=_parse_date_callback,
     help="Start date",
 )
 @click.option(
     "-e",
     "--end",
-    type=click.DateTime(formats=["%Y-%m-%d"]),
     default=dt.date.today().strftime(defaults.DATE_FMT),
-    callback=lambda ctx, param, value: value.date(),
+    callback=_parse_date_callback,
     help="End date",
 )
 @click.option("-n", "--name", help="Filter by habit name")

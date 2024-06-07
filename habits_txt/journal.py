@@ -6,6 +6,7 @@ import click
 from plotly import express as px
 
 import habits_txt.builder as builder
+import habits_txt.config as config
 import habits_txt.defaults as defaults
 import habits_txt.exceptions as exceptions
 import habits_txt.models as models
@@ -109,7 +110,9 @@ def _fill_day(
         journal_file, date
     )
     if not tracked_habits:
-        logging.info(f"{defaults.COMMENT_CHAR} No habits tracked")
+        logging.info(
+            f"{config.get('comment_char', 'CLI', defaults.COMMENT_CHAR)} No habits tracked"
+        )
         return [], False
     for habit in sorted(tracked_habits, key=lambda habit_: habit_.name):
         habit_records = [
@@ -357,7 +360,9 @@ def chart(
         records_by_interval[interval_start].append(record)
 
     if len(records_by_interval) < 2:
-        logging.info(f"{defaults.COMMENT_CHAR} Not enough data to plot")
+        logging.info(
+            f"{config.get('comment_char', 'CLI', defaults.COMMENT_CHAR)} Not enough data to plot"
+        )
         return
 
     completion_infos = []
@@ -369,7 +374,9 @@ def chart(
         completion_infos.extend(interval_completion_infos)
 
     if not completion_infos:
-        logging.info(f"{defaults.COMMENT_CHAR} No data to plot")
+        logging.info(
+            f"{config.get('comment_char', 'CLI', defaults.COMMENT_CHAR)} No data to plot"
+        )
         return
 
     habit_names = [info.habit.name for info in completion_infos]

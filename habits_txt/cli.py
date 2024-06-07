@@ -90,7 +90,9 @@ def fill(
         records_str = "\n".join(
             [style_.style_habit_record(record) for record in records]
         )
-        comment = f"{defaults.COMMENT_CHAR} Filled on {dt.datetime.now().strftime(config_.get(
+        comment = f"{config_.get(
+            'comment_char', 'CLI', defaults.COMMENT_CHAR
+        )} Filled on {dt.datetime.now().strftime(config_.get(
             'date_fmt', 'CLI', defaults.DATE_FMT))}"
         records_str = f"{comment}\n{records_str}" if not no_comment else records_str
         if write_top or write_bottom:
@@ -105,7 +107,9 @@ def fill(
         else:
             click.echo(records_str)
     else:
-        click.echo(f"{defaults.COMMENT_CHAR} Nothing to fill for {date}")
+        click.echo(
+            f"{config_.get('comment_char', 'CLI', defaults.COMMENT_CHAR)} Nothing to fill for {date}"
+        )
 
 
 @cli.command()
@@ -135,7 +139,9 @@ def filter(file, start, end, name):
         )
         click.echo(records_str)
     else:
-        click.echo(f"{defaults.COMMENT_CHAR} No records found")
+        click.echo(
+            f"{config.get('comment_char', 'CLI', defaults.COMMENT_CHAR)} No records found"
+        )
 
 
 @cli.command()
@@ -164,7 +170,9 @@ def info(file, start, end, name):
             click.echo(style_.style_completion_info(habit_completion_info))
             click.echo()
     else:
-        click.echo(f"{defaults.COMMENT_CHAR} No records found")
+        click.echo(
+            f"{config_.get('comment_char', 'CLI', defaults.COMMENT_CHAR)} No records found"
+        )
 
 
 @cli.command()
@@ -239,6 +247,16 @@ def date_fmt(date_fmt):
     """
     config_.set("date_fmt", date_fmt, "CLI")
     click.echo(f"Date format set to {date_fmt}")
+
+
+@set.command()
+@click.argument("comment_char")
+def comment_char(comment_char):
+    """
+    Set the comment character used in the journal file.
+    """
+    config_.set("comment_char", comment_char, "CLI")
+    click.echo(f"Comment character set to {comment_char}")
 
 
 @config.command(help="Get configuration settings")

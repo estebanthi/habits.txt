@@ -66,7 +66,9 @@ def _parse_directive(directive_line: str, lineno: int) -> directives.Directive |
     >>> directive_line = '2024-01-01 track "Sample habit" (* * *)'
     >>> parsed_directive = _parse_directive(directive_line, 1)
     """
-    if not directive_line or directive_line.startswith(defaults.COMMENT_CHAR):
+    if not directive_line or directive_line.startswith(
+        config.get("comment_char", "CLI", defaults.COMMENT_CHAR)
+    ):
         return None
     directive_line = re.sub(r"\s+", " ", directive_line)  # Remove extra spaces
     date = _parse_date(directive_line)

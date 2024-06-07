@@ -90,7 +90,8 @@ def fill(
         records_str = "\n".join(
             [style_.style_habit_record(record) for record in records]
         )
-        comment = f"{defaults.COMMENT_CHAR} Filled on {dt.datetime.now().strftime(defaults.DATE_FMT)}"
+        comment = f"{defaults.COMMENT_CHAR} Filled on {dt.datetime.now().strftime(config_.get(
+            'date_fmt', 'CLI', defaults.DATE_FMT))}"
         records_str = f"{comment}\n{records_str}" if not no_comment else records_str
         if write_top or write_bottom:
             records_str = click.unstyle(records_str)
@@ -228,6 +229,16 @@ def journal(path):
     """
     config_.set("journal", os.path.abspath(path), "CLI")
     click.echo(f"Journal file path set to {path}")
+
+
+@set.command()
+@click.argument("date_fmt")
+def date_fmt(date_fmt):
+    """
+    Set the date format used in the journal file.
+    """
+    config_.set("date_fmt", date_fmt, "CLI")
+    click.echo(f"Date format set to {date_fmt}")
 
 
 @config.command(help="Get configuration settings")

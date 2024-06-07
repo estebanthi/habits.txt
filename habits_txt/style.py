@@ -3,6 +3,7 @@ from enum import Enum
 
 import click
 
+import habits_txt.config as config
 import habits_txt.defaults as defaults
 import habits_txt.models as models_
 
@@ -65,7 +66,12 @@ def _style_str(s: str, key: str) -> str:
 def style_habit_record(record: models_.HabitRecord) -> str:
     return " ".join(
         [
-            _style_str(dt.datetime.strftime(record.date, defaults.DATE_FMT), "DATE"),
+            _style_str(
+                dt.datetime.strftime(
+                    record.date, config.get("date_fmt", "CLI", defaults.DATE_FMT)
+                ),
+                "DATE",
+            ),
             f'"{_style_str(record.habit_name, "HABIT_NAME")}"',
             _style_str(record._str_value(), "VALUE"),
         ]
@@ -73,7 +79,8 @@ def style_habit_record(record: models_.HabitRecord) -> str:
 
 
 def style_habit_input(date: dt.date, habit_name: str) -> str:
-    return f"{_style_str(date.strftime(defaults.DATE_FMT), "DATE")} - {_style_str(habit_name, "HABIT_NAME")}: "
+    return f"{_style_str(date.strftime(config.get(
+        "date_fmt", "CLI", defaults.DATE_FMT)), "DATE")} - {_style_str(habit_name, "HABIT_NAME")}: "
 
 
 def style_completion_info(habit_completion_info: models_.HabitCompletionInfo) -> str:

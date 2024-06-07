@@ -16,6 +16,7 @@ freezegun = "^1.5.1"
 dateparser = "^1.2.0"
 plotly = "^5.22.0"
 pandas = "^2.2.2"
+datetime-matcher = "^0.2.1"
 
 [tool.poetry.scripts]
 hbtxt = "bin.hbtxt:main"

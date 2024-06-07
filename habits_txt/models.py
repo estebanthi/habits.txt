@@ -3,6 +3,7 @@ from dataclasses import dataclass
 
 import croniter
 
+import habits_txt.config as config
 import habits_txt.defaults as defaults
 
 
@@ -106,7 +107,7 @@ class HabitRecord:
 
     def __str__(self) -> str:
         return (
-            f"{dt.datetime.strftime(self.date, defaults.DATE_FMT)} "
+            f"{dt.datetime.strftime(self.date, config.get("date_fmt", "CLI", defaults.DATE_FMT))} "
             f'"{self.habit_name}" {self._str_value()}'
         )
 

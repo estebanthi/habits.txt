@@ -130,4 +130,13 @@ Exercise (2024-01-01): yes
 # Filter habit records
 hbtxt filter -n "Exercise"
 2024-01-01 Exercise yes
+
+# Get information about the other available commands
+hbtxt --help
+
+# Get information about a given command
+hbtxt chart --help
+
+# Get information about the available config options
+hbtxt config set --help
 ```

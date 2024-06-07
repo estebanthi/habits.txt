@@ -14,6 +14,8 @@ croniter = "^2.0.5"
 click = "^8.1.7"
 freezegun = "^1.5.1"
 dateparser = "^1.2.0"
+plotly = "^5.22.0"
+pandas = "^2.2.2"
 
 [tool.poetry.scripts]
 hbtxt = "bin.hbtxt:main"

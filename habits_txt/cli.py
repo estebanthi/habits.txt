@@ -163,6 +163,37 @@ def info(file, start, end, name):
 
 @cli.command()
 @click.argument("file", type=click.File("r"))
+@click.option(
+    "-i", "--interval", type=click.Choice(["weekly", "monthly"]), default="weekly"
+)
+@click.option(
+    "-s",
+    "--start",
+    callback=_parse_date_callback,
+    help="Start date",
+)
+@click.option(
+    "-e",
+    "--end",
+    default=dt.date.today().strftime(defaults.DATE_FMT),
+    callback=_parse_date_callback,
+    help="End date",
+)
+@click.option("-n", "--name", help="Filter by habit name", multiple=True)
+@click.option(
+    "--expected",
+    is_flag=True,
+    help="Compute completion rate using expected records instead of written records",
+)
+def chart(file, interval, start, end, name, expected):
+    """
+    Generate a chart of habit records using FILE.
+    """
+    journal_.chart(file.name, interval, start, end, name, expected)
+
+
+@cli.command()
+@click.argument("file", type=click.File("r"))
 def edit(file):
     """
     Edit FILE.

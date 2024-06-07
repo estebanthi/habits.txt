@@ -22,6 +22,9 @@ def main():
             "info": {
                 "file": config_.get("journal", "CLI"),
             },
+            "chart": {
+                "file": config_.get("journal", "CLI"),
+            },
             "edit": {
                 "file": config_.get("journal", "CLI"),
             },

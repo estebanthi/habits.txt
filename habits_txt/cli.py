@@ -147,7 +147,7 @@ def filter(file, start, end, name):
     callback=_parse_date_callback,
     help="End date",
 )
-@click.option("-n", "--name", help="Filter by habit name")
+@click.option("-n", "--name", help="Filter by habit name", multiple=True)
 def info(file, start, end, name):
     """
     Get information about habit records using FILE.

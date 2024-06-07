@@ -166,7 +166,7 @@ def _filter_state(
     journal_file: str,
     start_date: dt.date | None,
     end_date: dt.date,
-    habit_name: str | None,
+    habit_name: typing.Tuple[str, ...] | None,
 ) -> typing.Tuple[
     set[models.Habit],
     list[models.HabitRecord],
@@ -194,7 +194,7 @@ def _filter_state(
         [
             habit
             for habit in tracked_habits
-            if (not habit_name or habit.name == habit_name)
+            if (not habit_name or habit.name in habit_name)
         ]
     )
 
@@ -202,7 +202,7 @@ def _filter_state(
         record
         for record in records
         if start_date <= record.date <= end_date
-        and (not habit_name or record.habit_name == habit_name)
+        and (not habit_name or record.habit_name in habit_name)
     ]
 
     filtered_habits_records_matches = []
@@ -211,7 +211,7 @@ def _filter_state(
             match.tracking_end_date and match.tracking_end_date < start_date
         ):
             continue
-        if habit_name and match.habit.name != habit_name:
+        if habit_name and match.habit.name not in habit_name:
             continue
         match.habit_records = [
             record

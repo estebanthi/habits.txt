@@ -4,7 +4,14 @@
 
 habits.txt is a plain text habit tracker.
 
-[Installation](#installation) | [Concepts](#concepts) | [Format](#format) | [Directives](#directives) | [Examples](examples)
+[Features](#features) | [Installation](#installation) | [Concepts](#concepts) | [Format](#format) | [Directives](#directives) | [Examples](examples)
+
+## Features
+
+- [x] Track habits in a plain text file
+- [x] Track boolean (done/not done) habits or measurable habits/metrics (e.g. weight)
+- [x] Custom and complex frequencies for habits (daily, on Monday and Friday, on the 1st every month, etc...)
+- [x] Get stats about your habits with the CLI or with charts opening in your browser
 
 ## Installation
 
@@ -85,7 +92,7 @@ To record a habit, you use the `record` directive and specify a value.
 
 The allowed values are `yes`, `no`, or a number. You should not mix boolean and numeric values for the same habit.
 
-You can write directives but omit the directive type, it will default to `record`.
+You can write directives but omit the directive type, it will default to `record` (as it is supposed to be the most common directive).
 
 Example:
 
@@ -123,4 +130,13 @@ Exercise (2024-01-01): yes
 # Filter habit records
 hbtxt filter -n "Exercise"
 2024-01-01 Exercise yes
+
+# Get information about the other available commands
+hbtxt --help
+
+# Get information about a given command
+hbtxt chart --help
+
+# Get information about the available config options
+hbtxt config set --help
 ```

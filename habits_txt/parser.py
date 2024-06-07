@@ -4,6 +4,9 @@ import re
 import typing
 from functools import wraps
 
+from datetime_matcher import DatetimeMatcher
+
+import habits_txt.config as config
 import habits_txt.defaults as defaults
 import habits_txt.directives as directives
 import habits_txt.exceptions as exceptions
@@ -63,7 +66,9 @@ def _parse_directive(directive_line: str, lineno: int) -> directives.Directive |
     >>> directive_line = '2024-01-01 track "Sample habit" (* * *)'
     >>> parsed_directive = _parse_directive(directive_line, 1)
     """
-    if not directive_line or directive_line.startswith(defaults.COMMENT_CHAR):
+    if not directive_line or directive_line.startswith(
+        config.get("comment_char", "CLI", defaults.COMMENT_CHAR)
+    ):
         return None
     directive_line = re.sub(r"\s+", " ", directive_line)  # Remove extra spaces
     date = _parse_date(directive_line)
@@ -128,14 +133,16 @@ def _parse_date(directive_line: str) -> dt.date:
     >>> print(date)
     2024-01-01
     """
-    res = re.search(r"^\d{4}-\d{2}-\d{2}", directive_line)
+    dtm = DatetimeMatcher()
+    date_fmt = config.get("date_fmt", "CLI", defaults.DATE_FMT)
+    res = dtm.search(rf"^{date_fmt}", directive_line)
     if res is None:
         raise exceptions.ParseError(
             f"Could not find a date in the directive: {directive_line}"
         )
     date_str = res.group(0)
     try:
-        date = dt.datetime.strptime(date_str, defaults.DATE_FMT).date()
+        date = dt.datetime.strptime(date_str, date_fmt).date()
     except ValueError:
         raise exceptions.ParseError(f"Found a date but it is invalid: {date_str}")
     return date

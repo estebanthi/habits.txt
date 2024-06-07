@@ -2,6 +2,7 @@ import datetime as dt
 import os
 
 import click
+from dateparser import parse
 
 import habits_txt.config as config_
 import habits_txt.defaults as defaults
@@ -15,28 +16,34 @@ def cli():
     pass
 
 
+def _parse_date_callback(ctx, param, value):
+    try:
+        return parse(value).date() if value else None
+    except Exception:
+        raise click.BadParameter(
+            "Invalid date format. Use YYYY-MM-DD or natural language"
+        )
+
+
 @cli.command()
 @click.argument("file", type=click.File("r+"))
 @click.option(
     "-d",
     "--date",
-    type=click.DateTime(formats=["%Y-%m-%d"]),
     default=dt.date.today().strftime(defaults.DATE_FMT),
-    callback=lambda ctx, param, value: value.date(),
+    callback=_parse_date_callback,
     help="Date to use (defaults to today)",
 )
 @click.option(
     "-s",
     "--start",
-    type=click.DateTime(formats=["%Y-%m-%d"]),
-    callback=lambda ctx, param, value: value.date() if value else None,
+    callback=_parse_date_callback,
     help="Start date",
 )
 @click.option(
     "-e",
     "--end",
-    type=click.DateTime(formats=["%Y-%m-%d"]),
-    callback=lambda ctx, param, value: value.date() if value else None,
+    callback=_parse_date_callback,
     help="End date",
 )
 @click.option("-m", "--missing", is_flag=True, help="Fill missing records")
@@ -83,7 +90,10 @@ def fill(
         records_str = "\n".join(
             [style_.style_habit_record(record) for record in records]
         )
-        comment = f"{defaults.COMMENT_CHAR} Filled on {dt.datetime.now().strftime(defaults.DATE_FMT)}"
+        comment = f"{config_.get(
+            'comment_char', 'CLI', defaults.COMMENT_CHAR
+        )} Filled on {dt.datetime.now().strftime(config_.get(
+            'date_fmt', 'CLI', defaults.DATE_FMT))}"
         records_str = f"{comment}\n{records_str}" if not no_comment else records_str
         if write_top or write_bottom:
             records_str = click.unstyle(records_str)
@@ -97,7 +107,9 @@ def fill(
         else:
             click.echo(records_str)
     else:
-        click.echo(f"{defaults.COMMENT_CHAR} Nothing to fill for {date}")
+        click.echo(
+            f"{config_.get('comment_char', 'CLI', defaults.COMMENT_CHAR)} Nothing to fill for {date}"
+        )
 
 
 @cli.command()
@@ -105,19 +117,23 @@ def fill(
 @click.option(
     "-s",
     "--start",
-    type=click.DateTime(formats=["%Y-%m-%d"]),
-    callback=lambda ctx, param, value: value.date() if value else None,
+    callback=_parse_date_callback,
     help="Start date",
 )
 @click.option(
     "-e",
     "--end",
-    type=click.DateTime(formats=["%Y-%m-%d"]),
     default=dt.date.today().strftime(defaults.DATE_FMT),
-    callback=lambda ctx, param, value: value.date(),
+    callback=_parse_date_callback,
     help="End date",
 )
-@click.option("-n", "--name", help="Filter by habit name")
+@click.option(
+    "-n",
+    "--name",
+    help="Filter by habit name. "
+    "You can specify multiple names using multiple --name flags",
+    multiple=True,
+)
 def filter(file, start, end, name):
     """
     Filter habit records using FILE.
@@ -129,7 +145,9 @@ def filter(file, start, end, name):
         )
         click.echo(records_str)
     else:
-        click.echo(f"{defaults.COMMENT_CHAR} No records found")
+        click.echo(
+            f"{config.get('comment_char', 'CLI', defaults.COMMENT_CHAR)} No records found"
+        )
 
 
 @cli.command()
@@ -137,19 +155,23 @@ def filter(file, start, end, name):
 @click.option(
     "-s",
     "--start",
-    type=click.DateTime(formats=["%Y-%m-%d"]),
-    callback=lambda ctx, param, value: value.date() if value else None,
+    callback=_parse_date_callback,
     help="Start date",
 )
 @click.option(
     "-e",
     "--end",
-    type=click.DateTime(formats=["%Y-%m-%d"]),
     default=dt.date.today().strftime(defaults.DATE_FMT),
-    callback=lambda ctx, param, value: value.date(),
+    callback=_parse_date_callback,
     help="End date",
 )
-@click.option("-n", "--name", help="Filter by habit name")
+@click.option(
+    "-n",
+    "--name",
+    help="Filter by habit name. "
+    "You can specify multiple names using multiple --name flags",
+    multiple=True,
+)
 def info(file, start, end, name):
     """
     Get information about habit records using FILE.
@@ -160,7 +182,47 @@ def info(file, start, end, name):
             click.echo(style_.style_completion_info(habit_completion_info))
             click.echo()
     else:
-        click.echo(f"{defaults.COMMENT_CHAR} No records found")
+        click.echo(
+            f"{config_.get('comment_char', 'CLI', defaults.COMMENT_CHAR)} No records found"
+        )
+
+
+@cli.command()
+@click.argument("file", type=click.File("r"))
+@click.option(
+    "-i", "--interval", type=click.Choice(["weekly", "monthly"]), default="weekly"
+)
+@click.option(
+    "-s",
+    "--start",
+    callback=_parse_date_callback,
+    help="Start date",
+)
+@click.option(
+    "-e",
+    "--end",
+    default=dt.date.today().strftime(defaults.DATE_FMT),
+    callback=_parse_date_callback,
+    help="End date",
+)
+@click.option(
+    "-n",
+    "--name",
+    help="Filter by habit name. "
+    "You can specify multiple names using multiple --name flags",
+    multiple=True,
+)
+@click.option(
+    "--expected",
+    is_flag=True,
+    help="Compute completion rate using expected records instead of written records "
+    "(i.e. consider a missing record as a failure or a 0 value instead of skipping it)",
+)
+def chart(file, interval, start, end, name, expected):
+    """
+    Generate a chart of habit records using FILE.
+    """
+    journal_.chart(file.name, interval, start, end, name, expected)
 
 
 @cli.command()
@@ -196,6 +258,26 @@ def journal(path):
     click.echo(f"Journal file path set to {path}")
 
 
+@set.command()
+@click.argument("date_fmt")
+def date_fmt(date_fmt):
+    """
+    Set the date format used in the journal file.
+    """
+    config_.set("date_fmt", date_fmt, "CLI")
+    click.echo(f"Date format set to {date_fmt}")
+
+
+@set.command()
+@click.argument("comment_char")
+def comment_char(comment_char):
+    """
+    Set the comment character used in the journal file.
+    """
+    config_.set("comment_char", comment_char, "CLI")
+    click.echo(f"Comment character set to {comment_char}")
+
+
 @config.command(help="Get configuration settings")
 def get():
     """
@@ -223,9 +305,8 @@ def config_edit():
 @click.option(
     "-d",
     "--date",
-    type=click.DateTime(formats=["%Y-%m-%d"]),
     default=dt.date.today().strftime(defaults.DATE_FMT),
-    callback=lambda ctx, param, value: value.date(),
+    callback=_parse_date_callback,
 )
 def check(file, date):
     """

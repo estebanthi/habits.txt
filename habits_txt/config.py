@@ -35,19 +35,23 @@ def set(key, value, section):
     config_path = os.path.join(defaults.APPDATA_PATH, "config.ini")
     config = configparser.ConfigParser()
     config.read(config_path)
+
+    if "%" in value:
+        value = value.replace("%", "%%")
+
     config[section][key] = value
     with open(config_path, "w") as f:
         config.write(f)
 
 
-def get(key, section):
+def get(key, section, default=None):
     config_path = os.path.join(defaults.APPDATA_PATH, "config.ini")
     config = configparser.ConfigParser()
     config.read(config_path)
     try:
         return config[section][key]
     except KeyError:
-        return None
+        return default
 
 
 def delete(key, section):

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "habits.txt"
-version = "0.4.5"
+version = "1.0.0"
 description = ""
 authors = ["estebanthi <esteban.thilliez@gmail.com>"]
 readme = "README.md"
@@ -13,6 +13,10 @@ python = ">=3.12,<3.13"
 croniter = "^2.0.5"
 click = "^8.1.7"
 freezegun = "^1.5.1"
+dateparser = "^1.2.0"
+plotly = "^5.22.0"
+pandas = "^2.2.2"
+datetime-matcher = "^0.2.1"
 
 [tool.poetry.scripts]
 hbtxt = "bin.hbtxt:main"
@@ -27,6 +31,7 @@ black = "^24.4.2"
 mypy = "^1.10.0"
 types-croniter = "^2.0.0.20240423"
 pre-commit = "^3.7.1"
+types-dateparser = "^1.2.0.20240420"
 
 
 [tool.poetry.group.build.dependencies]

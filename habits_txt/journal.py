@@ -3,8 +3,10 @@ import logging
 import typing
 
 import click
+from plotly import express as px
 
 import habits_txt.builder as builder
+import habits_txt.config as config
 import habits_txt.defaults as defaults
 import habits_txt.exceptions as exceptions
 import habits_txt.models as models
@@ -108,7 +110,9 @@ def _fill_day(
         journal_file, date
     )
     if not tracked_habits:
-        logging.info(f"{defaults.COMMENT_CHAR} No habits tracked")
+        logging.info(
+            f"{config.get('comment_char', 'CLI', defaults.COMMENT_CHAR)} No habits tracked"
+        )
         return [], False
     for habit in sorted(tracked_habits, key=lambda habit_: habit_.name):
         habit_records = [
@@ -166,7 +170,7 @@ def _filter_state(
     journal_file: str,
     start_date: dt.date | None,
     end_date: dt.date,
-    habit_name: str | None,
+    habit_name: typing.Tuple[str, ...] | None,
 ) -> typing.Tuple[
     set[models.Habit],
     list[models.HabitRecord],
@@ -194,7 +198,7 @@ def _filter_state(
         [
             habit
             for habit in tracked_habits
-            if (not habit_name or habit.name == habit_name)
+            if (not habit_name or habit.name in habit_name)
         ]
     )
 
@@ -202,7 +206,7 @@ def _filter_state(
         record
         for record in records
         if start_date <= record.date <= end_date
-        and (not habit_name or record.habit_name == habit_name)
+        and (not habit_name or record.habit_name in habit_name)
     ]
 
     filtered_habits_records_matches = []
@@ -211,7 +215,7 @@ def _filter_state(
             match.tracking_end_date and match.tracking_end_date < start_date
         ):
             continue
-        if habit_name and match.habit.name != habit_name:
+        if habit_name and match.habit.name not in habit_name:
             continue
         match.habit_records = [
             record
@@ -227,7 +231,7 @@ def filter(
     journal_file: str,
     start_date: dt.date | None,
     end_date: dt.date,
-    habit_name: str | None,
+    habit_name: typing.Tuple[str, ...] | None,
 ) -> list[models.HabitRecord]:
     """
     Filter records.
@@ -257,7 +261,7 @@ def info(
     journal_file: str,
     start_date: dt.date | None,
     end_date: dt.date,
-    habit_name: str | None,
+    habit_name: typing.Tuple[str, ...] | None,
 ) -> list[models.HabitCompletionInfo]:
     """
     Get information about the completion of habits.
@@ -313,3 +317,78 @@ def info(
         completion_infos.append(completion_info)
 
     return completion_infos
+
+
+def chart(
+    journal_file: str,
+    interval: str,
+    start_date: dt.date | None,
+    end_date: dt.date,
+    habit_name: typing.Tuple[str, ...] | None,
+    expected: bool = False,
+) -> None:
+    """
+    Get information about the completion of habits in a chart.
+
+    :param journal_file: Path to the journal file.
+    :param interval: Interval (weekly or monthly).
+    :param start_date: Start date.
+    :param end_date: End date.
+    :param habit_name: Habit name.
+    :param expected: Compute completion rate using expected records instead of written records.
+    :return: Information about the completion of habits.
+    """
+    if interval == "weekly":
+        interval_td = dt.timedelta(weeks=1)
+    elif interval == "monthly":
+        interval_td = dt.timedelta(weeks=4)
+    else:
+        raise ValueError(f"Invalid interval: {interval}")
+
+    tracked_habits, records, habits_records_matches = _filter_state(
+        journal_file, start_date, end_date, habit_name
+    )
+
+    if not start_date:
+        start_date = min(record.date for record in records)
+
+    records_by_interval: dict[dt.date, list[models.HabitRecord]] = {}
+    for record in records:
+        interval_start = record.date - (record.date - start_date) % interval_td
+        if interval_start not in records_by_interval:
+            records_by_interval[interval_start] = []
+        records_by_interval[interval_start].append(record)
+
+    if len(records_by_interval) < 2:
+        logging.info(
+            f"{config.get('comment_char', 'CLI', defaults.COMMENT_CHAR)} Not enough data to plot"
+        )
+        return
+
+    completion_infos = []
+    for interval_start, interval_records in records_by_interval.items():
+        interval_end = interval_start + interval_td - dt.timedelta(days=1)
+        interval_completion_infos = info(
+            journal_file, interval_start, interval_end, habit_name
+        )
+        completion_infos.extend(interval_completion_infos)
+
+    if not completion_infos:
+        logging.info(
+            f"{config.get('comment_char', 'CLI', defaults.COMMENT_CHAR)} No data to plot"
+        )
+        return
+
+    habit_names = [info.habit.name for info in completion_infos]
+    interval_starts = [info.start_date for info in completion_infos]
+    average_total = [info.average_total for info in completion_infos]
+    average_present = [info.average_present for info in completion_infos]
+
+    fig = px.line(
+        x=interval_starts,
+        y=average_total if expected else average_present,
+        color=habit_names,
+        labels={"x": "Date", "y": "Average completion"},
+        title="Average completion by habit",
+    )
+    fig.show()

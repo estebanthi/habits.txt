@@ -8,10 +8,10 @@ habits.txt is a plain text habit tracker.
 
 ## Features
 
-- \[x\] Track habits in a plain text file
-- \[x\] Track boolean (done/not done) habits or measurable habits/metrics (e.g. weight)
-- \[x\] Custom and complex frequencies for habits (daily, on Monday and Friday, on the 1st every month, etc...)
-- \[x\] Get stats about your habits with the CLI or with charts opening in your browser
+- [x] Track habits in a plain text file
+- [x] Track boolean (done/not done) habits or measurable habits/metrics (e.g. weight)
+- [x] Custom and complex frequencies for habits (daily, on Monday and Friday, on the 1st every month, etc...)
+- [x] Get stats about your habits with the CLI or with charts opening in your browser
 
 ## Installation
 

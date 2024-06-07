@@ -18,10 +18,6 @@ repos:
     rev: v1.35.1
     hooks:
       - id: yamllint
-  - repo: https://github.com/executablebooks/mdformat
-    rev: 0.7.17
-    hooks:
-      - id: mdformat
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.10.0
     hooks:

@@ -53,6 +53,22 @@ class Colors(Enum):
     AVERAGE_VALUE_bg = None
     AVERAGE_VALUE_bold = True
 
+    LONGEST_STREAK_fg = "bright_green"
+    LONGEST_STREAK_bg = None
+    LONGEST_STREAK_bold = False
+
+    LONGEST_STREAK_VALUE_fg = "green"
+    LONGEST_STREAK_VALUE_bg = None
+    LONGEST_STREAK_VALUE_bold = False
+
+    LATEST_STREAK_fg = "bright_green"
+    LATEST_STREAK_bg = None
+    LATEST_STREAK_bold = False
+
+    LATEST_STREAK_VALUE_fg = "green"
+    LATEST_STREAK_VALUE_bg = None
+    LATEST_STREAK_VALUE_bold = False
+
 
 def _style_str(s: str, key: str) -> str:
     return click.style(
@@ -124,6 +140,14 @@ def style_completion_info(habit_completion_info: models_.HabitCompletionInfo) ->
             + _style_str(
                 f" {process_average(habit_completion_info.average_present)}",
                 "AVERAGE_VALUE",
+            ),
+            _style_str("  Longest streak:", "LONGEST_STREAK")
+            + _style_str(
+                f" {habit_completion_info.longest_streak}", "LONGEST_STREAK_VALUE"
+            ),
+            _style_str("  Latest streak:", "LATEST_STREAK")
+            + _style_str(
+                f" {habit_completion_info.latest_streak}", "LATEST_STREAK_VALUE"
             ),
         ]
     )

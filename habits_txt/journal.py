@@ -305,12 +305,42 @@ def info(
             round(sum_values / n_records, round_decimals) if n_records else 0
         )
 
+        # add missing records
+        sorted_records = sorted(match.habit_records, key=lambda record: record.date)
+        all_records = []
+        next_expected_date = None
+        for record in sorted_records:
+            if next_expected_date:
+                while next_expected_date < record.date:
+                    all_records.append(
+                        models.HabitRecord(next_expected_date, match.habit.name, None)
+                    )
+                    next_expected_date = match.habit.frequency.get_next_date(
+                        next_expected_date
+                    )
+            all_records.append(record)
+            next_expected_date = match.habit.frequency.get_next_date(record.date)
+
+        if next_expected_date and next_expected_date <= effective_end_date:
+            while next_expected_date <= effective_end_date:
+                all_records.append(
+                    models.HabitRecord(next_expected_date, match.habit.name, None)
+                )
+                next_expected_date = match.habit.frequency.get_next_date(
+                    next_expected_date
+                )
+
+        longest_streak = records_query.get_longest_streak(match.habit, all_records)
+        latest_streak = records_query.get_latest_streak(match.habit, all_records)
+
         completion_info = models.HabitCompletionInfo(
             match.habit,
             n_records,
             n_records_expected,
             average_total,
             average_present,
+            longest_streak,
+            latest_streak,
             effective_start_date,
             effective_end_date,
         )

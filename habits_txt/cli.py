@@ -172,11 +172,16 @@ def filter(file, start, end, name):
     "You can specify multiple names using multiple --name flags",
     multiple=True,
 )
-def info(file, start, end, name):
+@click.option(
+    "--ignore-missing",
+    is_flag=True,
+    help="Ignore missing records when computing stats",
+)
+def info(file, start, end, name, ignore_missing):
     """
     Get information about habit records using FILE.
     """
-    habit_completion_infos = journal_.info(file.name, start, end, name)
+    habit_completion_infos = journal_.info(file.name, start, end, name, ignore_missing)
     if habit_completion_infos:
         for habit_completion_info in habit_completion_infos:
             click.echo(style_.style_completion_info(habit_completion_info))
@@ -213,16 +218,15 @@ def info(file, start, end, name):
     multiple=True,
 )
 @click.option(
-    "--expected",
+    "--ignore-missing",
     is_flag=True,
-    help="Compute completion rate using expected records instead of written records "
-    "(i.e. consider a missing record as a failure or a 0 value instead of skipping it)",
+    help="Ignore missing records when computing stats",
 )
-def chart(file, interval, start, end, name, expected):
+def chart(file, interval, start, end, name, ignore_missing):
     """
     Generate a chart of habit records using FILE.
     """
-    journal_.chart(file.name, interval, start, end, name, expected)
+    journal_.chart(file.name, interval, start, end, name, ignore_missing)
 
 
 @cli.command()

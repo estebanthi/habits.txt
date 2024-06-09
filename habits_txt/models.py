@@ -143,6 +143,8 @@ class HabitCompletionInfo:
     n_records: int
     n_records_expected: int
     average_value: float
+    longest_streak: int
+    latest_streak: int
     start_date: dt.date
     end_date: dt.date | None
 

@@ -402,6 +402,8 @@ def test_info(monkeypatch):
     assert info[0].n_records == 2
     assert info[0].n_records_expected == 3
     assert info[0].average_value == 0.67
+    assert info[0].longest_streak == 2
+    assert info[0].latest_streak == 0
     assert info[0].start_date == tracking_start_date1
     assert info[0].end_date == tracking_end_date1
 
@@ -410,6 +412,66 @@ def test_info(monkeypatch):
     )
 
     assert info[0].average_value == 1
+
+    habit2 = models.Habit("habit2", models.Frequency("* * *"))
+    record21 = models.HabitRecord(dt.date(2021, 1, 1), "habit2", True)
+    record22 = models.HabitRecord(dt.date(2021, 1, 2), "habit2", True)
+    record24 = models.HabitRecord(dt.date(2021, 1, 4), "habit2", True)
+    tracking_start_date2 = dt.date(2021, 1, 1)
+    tracking_end_date2 = dt.date(2021, 1, 4)
+
+    habit_record_matches2 = models.HabitRecordMatch(
+        habit2, [record21, record22, record24], tracking_start_date2, tracking_end_date2
+    )
+    monkeypatch.setattr(
+        journal,
+        "get_state_at_date",
+        lambda x, y: (
+            [habit2],
+            [record21, record22, record24],
+            [habit_record_matches2],
+        ),
+    )
+
+    info = journal.info("journal_file", None, dt.date(2021, 1, 4), None)
+
+    assert info[0].habit == habit2
+    assert info[0].longest_streak == 2
+    assert info[0].latest_streak == 1
+
+    info = journal.info(
+        "journal_file", None, dt.date(2021, 1, 4), None, ignore_missing=True
+    )
+
+    assert info[0].longest_streak == 3
+    assert info[0].latest_streak == 3
+
+    habit3 = models.Habit("habit3", models.Frequency("* * *"), is_measurable=True)
+    record31 = models.HabitRecord(dt.date(2021, 1, 1), "habit3", 5)
+    record32 = models.HabitRecord(dt.date(2021, 1, 2), "habit3", 10)
+    record34 = models.HabitRecord(dt.date(2021, 1, 4), "habit3", 20)
+    tracking_start_date3 = dt.date(2021, 1, 1)
+    tracking_end_date3 = dt.date(2021, 1, 4)
+
+    habit_record_matches3 = models.HabitRecordMatch(
+        habit3, [record31, record32, record34], tracking_start_date3, tracking_end_date3
+    )
+
+    monkeypatch.setattr(
+        journal,
+        "get_state_at_date",
+        lambda x, y: (
+            [habit3],
+            [record31, record32, record34],
+            [habit_record_matches3],
+        ),
+    )
+
+    info = journal.info("journal_file", None, dt.date(2021, 1, 4), None)
+
+    assert info[0].habit == habit3
+    assert info[0].longest_streak == 2
+    assert info[0].latest_streak == 1
 
 
 def test_tracked(monkeypatch):

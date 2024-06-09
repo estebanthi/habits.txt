@@ -439,6 +439,13 @@ def test_info(monkeypatch):
     assert info[0].longest_streak == 2
     assert info[0].latest_streak == 1
 
+    info = journal.info(
+        "journal_file", None, dt.date(2021, 1, 4), None, ignore_missing=True
+    )
+
+    assert info[0].longest_streak == 3
+    assert info[0].latest_streak == 3
+
     habit3 = models.Habit("habit3", models.Frequency("* * *"), is_measurable=True)
     record31 = models.HabitRecord(dt.date(2021, 1, 1), "habit3", 5)
     record32 = models.HabitRecord(dt.date(2021, 1, 2), "habit3", 10)

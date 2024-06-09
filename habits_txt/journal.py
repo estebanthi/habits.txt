@@ -332,16 +332,25 @@ def info(
                     next_expected_date
                 )
 
-        longest_streak = records_query.get_longest_streak(match.habit, all_records)
-        latest_streak = records_query.get_latest_streak(match.habit, all_records)
+        longest_streak_total = records_query.get_longest_streak(
+            match.habit, all_records
+        )
+        latest_streak_total = records_query.get_latest_streak(match.habit, all_records)
+
+        longest_streak = records_query.get_longest_streak(
+            match.habit, match.habit_records
+        )
+        latest_streak = records_query.get_latest_streak(
+            match.habit, match.habit_records
+        )
 
         completion_info = models.HabitCompletionInfo(
             match.habit,
             n_records,
             n_records_expected,
             average_present if ignore_missing else average_total,
-            longest_streak,
-            latest_streak,
+            longest_streak if ignore_missing else longest_streak_total,
+            latest_streak if ignore_missing else latest_streak_total,
             effective_start_date,
             effective_end_date,
         )

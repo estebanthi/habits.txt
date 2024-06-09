@@ -74,6 +74,7 @@ def _parse_directive(directive_line: str, lineno: int) -> directives.Directive |
     date = _parse_date(directive_line)
     directive_type = _parse_directive_type(directive_line)
     habit_name = _parse_habit_name(directive_line)
+    metadata = parse_metadata(directive_line)
 
     if directive_type == directives.DirectiveType.TRACK:
         frequency = _parse_frequency(directive_line)
@@ -81,13 +82,13 @@ def _parse_directive(directive_line: str, lineno: int) -> directives.Directive |
             re.search(rf"{defaults.MEASURABLE_KEYWORD}$", directive_line) is not None
         )
         return directives.TrackDirective(
-            date, habit_name, lineno, frequency, is_measurable
+            date, habit_name, lineno, metadata, frequency, is_measurable
         )
     elif directive_type == directives.DirectiveType.UNTRACK:
-        return directives.UntrackDirective(date, habit_name, lineno)
+        return directives.UntrackDirective(date, habit_name, lineno, metadata)
     elif directive_type == directives.DirectiveType.RECORD:
         value = _parse_value(directive_line)
-        return directives.RecordDirective(date, habit_name, lineno, value)
+        return directives.RecordDirective(date, habit_name, lineno, value, metadata)
 
     return None
 
@@ -276,3 +277,25 @@ def parse_value_str(value_str: str) -> bool | float:
         return float(value_str)
     except ValueError:
         raise exceptions.ParseError(f"Value must be a boolean or a number: {value_str}")
+
+
+def parse_metadata(directive_line: str) -> dict[str, str]:
+    """
+    Parse metadata from a directive line.
+    Metadata are key-value pairs separated by a colon.
+
+    :param directive_line: Directive line.
+    :return: Parsed metadata.
+
+    Example:
+    >>> directive_line = '2024-01-02 "Sample habit" meta1:value1 meta2: value2 yes'
+    >>> metadata = parse_metadata(directive_line)
+    >>> print(metadata)
+    {'meta1': 'value1', 'meta2': 'value2'}
+    """
+    metadata = {}
+    metadata_str = re.findall(r"\s(\w+:\s?\S+)", directive_line)
+    for meta in metadata_str:
+        key, value = meta.split(":")
+        metadata[key] = value.strip()
+    return metadata

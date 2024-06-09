@@ -135,13 +135,16 @@ def _build_habit_from_track_directive(
     :return: Built habit.
 
     Example:
-    >>> directive = directives.TrackDirective(dt.datetime(2024, 1, 1), "Habit 1", models.Frequency("* * *"))
+    >>> directive = directives.TrackDirective(dt.datetime(2024, 1, 1), "Habit 1", models.Frequency("* * *")
     >>> habit = _build_habit_from_track_directive(directive)
     >>> print(habit)
     Habit 1
     """
     return models.Habit(
-        directive.habit_name, directive.frequency, directive.is_measurable
+        directive.habit_name,
+        directive.frequency,
+        directive.is_measurable,
+        directive.metadata,
     )
 
 
@@ -155,12 +158,14 @@ def _build_habit_record_from_record_directive(
     :return: Built habit record.
 
     Example:
-    >>> directive = directives.RecordDirective(dt.datetime(2024, 1, 1), "Habit 1", False)
+    >>> directive = directives.RecordDirective(dt.datetime(2024, 1, 1), "Habit 1", False, {})
     >>> habit_record = _build_habit_record_from_record_directive(directive)
     >>> print(habit_record)
-    HabitRecord(2024-01-01, Habit 1, False)
+    HabitRecord(2024-01-01, Habit 1, False, {})
     """
-    return models.HabitRecord(directive.date, directive.habit_name, directive.value)
+    return models.HabitRecord(
+        directive.date, directive.habit_name, directive.value, directive.metadata
+    )
 
 
 def _get_records_up_to_date(

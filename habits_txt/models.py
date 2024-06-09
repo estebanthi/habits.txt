@@ -83,6 +83,11 @@ class Habit:
     name: str
     frequency: Frequency
     is_measurable: bool = False
+    metadata: dict | None = None
+
+    def __post_init__(self):
+        if self.metadata is None:
+            self.metadata = {}
 
     def __hash__(self):
         return hash(self.name)
@@ -102,6 +107,11 @@ class HabitRecord:
     date: dt.date
     habit_name: str
     value: bool | float | None
+    metadata: dict | None = None
+
+    def __post_init__(self):
+        if self.metadata is None:
+            self.metadata = {}
 
     @property
     def is_complete(self) -> bool:

@@ -410,3 +410,59 @@ def test_info(monkeypatch):
     )
 
     assert info[0].average_value == 1
+
+
+def test_tracked(monkeypatch):
+    habit1 = models.Habit("habit1", models.Frequency("* * *"))
+    record11 = models.HabitRecord(dt.date(2021, 1, 1), "habit1", True)
+    record12 = models.HabitRecord(dt.date(2021, 1, 2), "habit1", True)
+    tracking_start_date1 = dt.date(2021, 1, 1)
+
+    habit2 = models.Habit("habit2", models.Frequency("* * *"))
+    record21 = models.HabitRecord(dt.date(2021, 1, 1), "habit2", True)
+    record22 = models.HabitRecord(dt.date(2021, 1, 2), "habit2", True)
+    tracking_start_date2 = dt.date(2021, 1, 1)
+
+    habit_record_matches1 = models.HabitRecordMatch(
+        habit1, [record11, record12], tracking_start_date1, None
+    )
+    habit_record_matches2 = models.HabitRecordMatch(
+        habit2, [record21, record22], tracking_start_date2, None
+    )
+    monkeypatch.setattr(
+        journal,
+        "get_state_at_date",
+        lambda x, y: (
+            [habit1, habit2],
+            [record11, record12, record21, record22],
+            [habit_record_matches1, habit_record_matches2],
+        ),
+    )
+
+    tracked = journal.tracked("journal_file", dt.date(2021, 1, 2))
+
+    assert tracked[0][0] == habit1
+    assert tracked[0][1] == tracking_start_date1
+    assert tracked[1][0] == habit2
+    assert tracked[1][1] == tracking_start_date2
+
+    habit_record_matches1 = models.HabitRecordMatch(
+        habit1, [record11, record12], tracking_start_date1, dt.date(2021, 1, 3)
+    )
+
+    monkeypatch.setattr(
+        journal,
+        "get_state_at_date",
+        lambda x, y: (
+            [habit1, habit2],
+            [record11, record12, record21, record22],
+            [habit_record_matches1, habit_record_matches2],
+        ),
+    )
+
+    tracked = journal.tracked("journal_file", dt.date(2021, 1, 2))
+
+    assert tracked[0][0] == habit2
+    assert tracked[0][1] == tracking_start_date2
+
+    assert len(tracked) == 1

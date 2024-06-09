@@ -229,6 +229,32 @@ def chart(file, interval, start, end, name, ignore_missing):
     journal_.chart(file.name, interval, start, end, name, ignore_missing)
 
 
+""" tracked command to list the tracked habits at the given date"""
+
+
+@cli.command()
+@click.argument("file", type=click.File("r"))
+@click.option(
+    "-d",
+    "--date",
+    default=dt.date.today().strftime(defaults.DATE_FMT),
+    callback=_parse_date_callback,
+    help="Date to use (defaults to today)",
+)
+def tracked(file, date):
+    """
+    List the tracked habits at the given date.
+    """
+    tracked_habits = journal_.tracked(file.name, date)
+    if tracked_habits:
+        for habit, tracking_start_date in tracked_habits:
+            click.echo(style_.style_tracked_habit(habit, tracking_start_date))
+    else:
+        click.echo(
+            f"{config_.get('comment_char', 'CLI', defaults.COMMENT_CHAR)} No habits found"
+        )
+
+
 @cli.command()
 @click.argument("file", type=click.File("r"))
 def edit(file):

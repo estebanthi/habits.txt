@@ -49,6 +49,10 @@ class Colors(Enum):
     AVERAGE_VALUE_bg = None
     AVERAGE_VALUE_bold = True
 
+    FREQUENCY_fg = "bright_yellow"
+    FREQUENCY_bg = None
+    FREQUENCY_bold = False
+
 
 def _style_str(s: str, key: str) -> str:
     return click.style(
@@ -119,3 +123,31 @@ def style_completion_info(habit_completion_info: models_.HabitCompletionInfo) ->
         ]
     )
     return string
+
+
+def style_tracked_habit(habit: models_.Habit, tracking_start_date: dt.date) -> str:
+    return (
+        "Since "
+        + _style_str(
+            dt.datetime.strftime(
+                tracking_start_date, config.get("date_fmt", "CLI", defaults.DATE_FMT)
+            ),
+            "DATE",
+        )
+        + ": "
+        + _style_str(habit.name, "HABIT_NAME")
+        + " "
+        + _style_str(
+            f"({habit.frequency})",
+            "FREQUENCY",
+        )
+        + " "
+        + (
+            _style_str(
+                "[measurable]",
+                "VALUE",
+            )
+            if habit.is_measurable
+            else ""
+        )
+    )

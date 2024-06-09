@@ -391,3 +391,21 @@ def chart(
         title="Average completion by habit",
     )
     fig.show()
+
+
+def tracked(
+    journal_file: str, date: dt.date
+) -> list[typing.Tuple[models.Habit, dt.date]]:
+    """
+    Get the tracked habits at a given date.
+
+    :param journal_file: Path to the journal file.
+    :param date: Date to use.
+    :return: Tracked habits and their tracking start date.
+    """
+    _, _, matches = get_state_at_date(journal_file, date)
+    return [
+        (match.habit, match.tracking_start_date)
+        for match in matches
+        if match.tracking_end_date is None
+    ]

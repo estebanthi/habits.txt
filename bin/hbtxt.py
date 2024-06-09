@@ -25,6 +25,9 @@ def main():
             "chart": {
                 "file": config_.get("journal", "CLI"),
             },
+            "tracked": {
+                "file": config_.get("journal", "CLI"),
+            },
             "edit": {
                 "file": config_.get("journal", "CLI"),
             },

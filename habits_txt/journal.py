@@ -262,6 +262,7 @@ def info(
     start_date: dt.date | None,
     end_date: dt.date,
     habit_name: typing.Tuple[str, ...] | None,
+    ignore_missing: bool = False,
 ) -> list[models.HabitCompletionInfo]:
     """
     Get information about the completion of habits.
@@ -270,6 +271,7 @@ def info(
     :param start_date: Start date.
     :param end_date: End date.
     :param habit_name: Habit name.
+    :param ignore_missing: Ignore missing records when computing stats.
     :return: Information about the completion of habits.
     """
     tracked_habits, records, habits_records_matches = _filter_state(
@@ -305,12 +307,50 @@ def info(
             round(sum_values / n_records, round_decimals) if n_records else 0
         )
 
+        # add missing records
+        sorted_records = sorted(match.habit_records, key=lambda record: record.date)
+        all_records = []
+        next_expected_date = None
+        for record in sorted_records:
+            if next_expected_date:
+                while next_expected_date < record.date:
+                    all_records.append(
+                        models.HabitRecord(next_expected_date, match.habit.name, None)
+                    )
+                    next_expected_date = match.habit.frequency.get_next_date(
+                        next_expected_date
+                    )
+            all_records.append(record)
+            next_expected_date = match.habit.frequency.get_next_date(record.date)
+
+        if next_expected_date and next_expected_date <= effective_end_date:
+            while next_expected_date <= effective_end_date:
+                all_records.append(
+                    models.HabitRecord(next_expected_date, match.habit.name, None)
+                )
+                next_expected_date = match.habit.frequency.get_next_date(
+                    next_expected_date
+                )
+
+        longest_streak_total = records_query.get_longest_streak(
+            match.habit, all_records
+        )
+        latest_streak_total = records_query.get_latest_streak(match.habit, all_records)
+
+        longest_streak = records_query.get_longest_streak(
+            match.habit, match.habit_records
+        )
+        latest_streak = records_query.get_latest_streak(
+            match.habit, match.habit_records
+        )
+
         completion_info = models.HabitCompletionInfo(
             match.habit,
             n_records,
             n_records_expected,
-            average_total,
-            average_present,
+            average_present if ignore_missing else average_total,
+            longest_streak if ignore_missing else longest_streak_total,
+            latest_streak if ignore_missing else latest_streak_total,
             effective_start_date,
             effective_end_date,
         )
@@ -325,7 +365,7 @@ def chart(
     start_date: dt.date | None,
     end_date: dt.date,
     habit_name: typing.Tuple[str, ...] | None,
-    expected: bool = False,
+    ignore_missing: bool = False,
 ) -> None:
     """
     Get information about the completion of habits in a chart.
@@ -335,8 +375,7 @@ def chart(
     :param start_date: Start date.
     :param end_date: End date.
     :param habit_name: Habit name.
-    :param expected: Compute completion rate using expected records instead of written records.
-    :return: Information about the completion of habits.
+    :param ignore_missing: Ignore missing records when computing stats.
     """
     if interval == "weekly":
         interval_td = dt.timedelta(weeks=1)
@@ -369,7 +408,7 @@ def chart(
     for interval_start, interval_records in records_by_interval.items():
         interval_end = interval_start + interval_td - dt.timedelta(days=1)
         interval_completion_infos = info(
-            journal_file, interval_start, interval_end, habit_name
+            journal_file, interval_start, interval_end, habit_name, ignore_missing
         )
         completion_infos.extend(interval_completion_infos)
 
@@ -381,12 +420,11 @@ def chart(
 
     habit_names = [info.habit.name for info in completion_infos]
     interval_starts = [info.start_date for info in completion_infos]
-    average_total = [info.average_total for info in completion_infos]
-    average_present = [info.average_present for info in completion_infos]
+    average_value = [info.average_value for info in completion_infos]
 
     fig = px.line(
         x=interval_starts,
-        y=average_total if expected else average_present,
+        y=average_value,
         color=habit_names,
         labels={"x": "Date", "y": "Average completion"},
         title="Average completion by habit",

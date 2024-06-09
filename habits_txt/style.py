@@ -41,17 +41,29 @@ class Colors(Enum):
     MISSING_RECORDS_bg = None
     MISSING_RECORDS_bold = False
 
-    AVERAGE_TOTAL_fg = "magenta"
-    AVERAGE_TOTAL_bg = None
-    AVERAGE_TOTAL_bold = False
-
-    AVERAGE_PRESENT_fg = "magenta"
-    AVERAGE_PRESENT_bg = None
-    AVERAGE_PRESENT_bold = False
+    AVERAGE_fg = "magenta"
+    AVERAGE_bg = None
+    AVERAGE_bold = False
 
     AVERAGE_VALUE_fg = "bright_magenta"
     AVERAGE_VALUE_bg = None
     AVERAGE_VALUE_bold = True
+
+    LONGEST_STREAK_fg = "bright_green"
+    LONGEST_STREAK_bg = None
+    LONGEST_STREAK_bold = False
+
+    LONGEST_STREAK_VALUE_fg = "green"
+    LONGEST_STREAK_VALUE_bg = None
+    LONGEST_STREAK_VALUE_bold = False
+
+    LATEST_STREAK_fg = "bright_green"
+    LATEST_STREAK_bg = None
+    LATEST_STREAK_bold = False
+
+    LATEST_STREAK_VALUE_fg = "green"
+    LATEST_STREAK_VALUE_bg = None
+    LATEST_STREAK_VALUE_bold = False
 
 
 def _style_str(s: str, key: str) -> str:
@@ -115,15 +127,18 @@ def style_completion_info(habit_completion_info: models_.HabitCompletionInfo) ->
                 f" {habit_completion_info.n_records_expected - habit_completion_info.n_records}",
                 "N_RECORDS_MISSING",
             ),
-            _style_str(f"  {value_str} (among expected records):", "AVERAGE_TOTAL")
+            _style_str(f"  {value_str}:", "AVERAGE")
             + _style_str(
-                f" {process_average(habit_completion_info.average_total)}",
+                f" {process_average(habit_completion_info.average_value)}",
                 "AVERAGE_VALUE",
             ),
-            _style_str(f"  {value_str} (among written records):", "AVERAGE_PRESENT")
+            _style_str("  Longest streak:", "LONGEST_STREAK")
             + _style_str(
-                f" {process_average(habit_completion_info.average_present)}",
-                "AVERAGE_VALUE",
+                f" {habit_completion_info.longest_streak}", "LONGEST_STREAK_VALUE"
+            ),
+            _style_str("  Latest streak:", "LATEST_STREAK")
+            + _style_str(
+                f" {habit_completion_info.latest_streak}", "LATEST_STREAK_VALUE"
             ),
         ]
     )

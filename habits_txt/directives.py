@@ -76,7 +76,7 @@ class RecordDirective(Directive):
         date: dt.date,
         habit_name: str,
         lineno: int,
-        value: bool | float,
+        value: bool | float | None,
         metadata: dict,
     ):
         super().__init__(date, habit_name, lineno, metadata)

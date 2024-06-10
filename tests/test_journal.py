@@ -233,7 +233,9 @@ def test_get_first_date(monkeypatch):
 
 def test_filter_state(monkeypatch):
     monkeypatch.setattr(journal, "get_state_at_date", lambda x, y: ([], [], []))
-    assert journal._filter_state("journal_file", None, dt.date(2021, 1, 1), None) == (
+    assert journal._filter_state(
+        "journal_file", None, dt.date(2021, 1, 1), None, {}
+    ) == (
         set(),
         [],
         [],
@@ -245,7 +247,7 @@ def test_filter_state(monkeypatch):
     ]
     records = [
         models.HabitRecord(dt.date(2021, 1, 1), "habit1", True),
-        models.HabitRecord(dt.date(2021, 1, 1), "habit2", True),
+        models.HabitRecord(dt.date(2021, 1, 1), "habit2", True, {"note": "note"}),
         models.HabitRecord(dt.date(2022, 1, 1), "habit1", True),
         models.HabitRecord(dt.date(2022, 1, 1), "habit2", True),
     ]
@@ -262,7 +264,9 @@ def test_filter_state(monkeypatch):
         models.HabitRecordMatch(
             models.Habit("habit2", models.Frequency("* * *")),
             [
-                models.HabitRecord(dt.date(2021, 1, 1), "habit2", True),
+                models.HabitRecord(
+                    dt.date(2021, 1, 1), "habit2", True, {"note": "note"}
+                ),
                 models.HabitRecord(dt.date(2022, 1, 1), "habit2", True),
             ],
             dt.date(2021, 1, 1),
@@ -274,14 +278,16 @@ def test_filter_state(monkeypatch):
         "get_state_at_date",
         lambda x, y: (tracked_habits, records, habits_records_matches),
     )
-    assert journal._filter_state("journal_file", None, dt.date(2024, 1, 1), None) == (
+    assert journal._filter_state(
+        "journal_file", None, dt.date(2024, 1, 1), None, {}
+    ) == (
         set(tracked_habits),
         records,
         habits_records_matches,
     )
 
     assert journal._filter_state(
-        "journal_file", None, dt.date(2024, 1, 1), "habit1"
+        "journal_file", None, dt.date(2024, 1, 1), "habit1", {}
     ) == (
         {models.Habit("habit1", models.Frequency("* * *"))},
         [
@@ -302,7 +308,7 @@ def test_filter_state(monkeypatch):
     )
 
     assert journal._filter_state(
-        "journal_file", dt.date(2020, 12, 31), dt.date(2021, 2, 1), None
+        "journal_file", dt.date(2020, 12, 31), dt.date(2021, 2, 1), None, {}
     ) == (
         {
             models.Habit("habit1", models.Frequency("* * *")),
@@ -310,7 +316,7 @@ def test_filter_state(monkeypatch):
         },
         [
             models.HabitRecord(dt.date(2021, 1, 1), "habit1", True),
-            models.HabitRecord(dt.date(2021, 1, 1), "habit2", True),
+            models.HabitRecord(dt.date(2021, 1, 1), "habit2", True, {"note": "note"}),
         ],
         [
             models.HabitRecordMatch(
@@ -324,7 +330,36 @@ def test_filter_state(monkeypatch):
             models.HabitRecordMatch(
                 models.Habit("habit2", models.Frequency("* * *")),
                 [
-                    models.HabitRecord(dt.date(2021, 1, 1), "habit2", True),
+                    models.HabitRecord(
+                        dt.date(2021, 1, 1), "habit2", True, {"note": "note"}
+                    ),
+                ],
+                dt.date(2021, 1, 1),
+                None,
+            ),
+        ],
+    )
+
+    assert journal._filter_state(
+        "journal_file",
+        dt.date(2020, 12, 31),
+        dt.date(2021, 2, 1),
+        "habit2",
+        {"note": "note"},
+    ) == (
+        {
+            models.Habit("habit2", models.Frequency("* * *")),
+        },
+        [
+            models.HabitRecord(dt.date(2021, 1, 1), "habit2", True, {"note": "note"}),
+        ],
+        [
+            models.HabitRecordMatch(
+                models.Habit("habit2", models.Frequency("* * *")),
+                [
+                    models.HabitRecord(
+                        dt.date(2021, 1, 1), "habit2", True, {"note": "note"}
+                    ),
                 ],
                 dt.date(2021, 1, 1),
                 None,
@@ -335,23 +370,26 @@ def test_filter_state(monkeypatch):
 
 def test_filter(monkeypatch):
     monkeypatch.setattr(journal, "get_state_at_date", lambda x, y: ([], [], []))
-    assert journal.filter("journal_file", None, dt.date(2021, 1, 1), None) == []
-
-    records = [models.HabitRecord(dt.date(2021, 1, 1), "habit1", True)]
-    monkeypatch.setattr(journal, "get_state_at_date", lambda x, y: ([], records, []))
-    assert journal.filter("journal_file", None, dt.date(2021, 1, 1), None) == records
+    assert journal.filter("journal_file", None, dt.date(2021, 1, 1), None, {}) == []
 
     records = [models.HabitRecord(dt.date(2021, 1, 1), "habit1", True)]
     monkeypatch.setattr(journal, "get_state_at_date", lambda x, y: ([], records, []))
     assert (
-        journal.filter("journal_file", None, dt.date(2021, 1, 1), "habit1") == records
+        journal.filter("journal_file", None, dt.date(2021, 1, 1), None, {}) == records
+    )
+
+    records = [models.HabitRecord(dt.date(2021, 1, 1), "habit1", True)]
+    monkeypatch.setattr(journal, "get_state_at_date", lambda x, y: ([], records, []))
+    assert (
+        journal.filter("journal_file", None, dt.date(2021, 1, 1), "habit1", {})
+        == records
     )
 
     records = [models.HabitRecord(dt.date(2021, 1, 1), "habit1", True)]
     monkeypatch.setattr(journal, "get_state_at_date", lambda x, y: ([], records, []))
     assert (
         journal.filter(
-            "journal_file", dt.date(2021, 1, 1), dt.date(2021, 1, 1), "habit1"
+            "journal_file", dt.date(2021, 1, 1), dt.date(2021, 1, 1), "habit1", {}
         )
         == records
     )
@@ -360,7 +398,7 @@ def test_filter(monkeypatch):
     monkeypatch.setattr(journal, "get_state_at_date", lambda x, y: ([], records, []))
     assert (
         journal.filter(
-            "journal_file", dt.date(2021, 1, 2), dt.date(2021, 1, 2), "habit1"
+            "journal_file", dt.date(2021, 1, 2), dt.date(2021, 1, 2), "habit1", {}
         )
         == []
     )
@@ -369,10 +407,23 @@ def test_filter(monkeypatch):
     monkeypatch.setattr(journal, "get_state_at_date", lambda x, y: ([], records, []))
     assert (
         journal.filter(
-            "journal_file", dt.date(2021, 1, 1), dt.date(2021, 1, 1), "habit2"
+            "journal_file", dt.date(2021, 1, 1), dt.date(2021, 1, 1), "habit2", {}
         )
         == []
     )
+
+    records = [
+        models.HabitRecord(dt.date(2021, 1, 1), "habit1", True, {"note": "note"}),
+        models.HabitRecord(dt.date(2021, 1, 1), "habit1", True, {"note": "note2"}),
+    ]
+    monkeypatch.setattr(journal, "get_state_at_date", lambda x, y: ([], records, []))
+    assert journal.filter(
+        "journal_file",
+        dt.date(2021, 1, 1),
+        dt.date(2021, 1, 1),
+        "habit1",
+        {"note": "note"},
+    ) == [models.HabitRecord(dt.date(2021, 1, 1), "habit1", True, {"note": "note"})]
 
 
 def test_check(monkeypatch):
@@ -396,7 +447,7 @@ def test_info(monkeypatch):
         lambda x, y: ([habit1], [record11, record12], [habit_record_matches1]),
     )
 
-    info = journal.info("journal_file", None, dt.date(2021, 1, 3), None)
+    info = journal.info("journal_file", None, dt.date(2021, 1, 3), None, {})
 
     assert info[0].habit == habit1
     assert info[0].n_records == 2
@@ -408,7 +459,7 @@ def test_info(monkeypatch):
     assert info[0].end_date == tracking_end_date1
 
     info = journal.info(
-        "journal_file", None, dt.date(2021, 1, 3), None, ignore_missing=True
+        "journal_file", None, dt.date(2021, 1, 3), None, {}, ignore_missing=True
     )
 
     assert info[0].average_value == 1
@@ -433,14 +484,14 @@ def test_info(monkeypatch):
         ),
     )
 
-    info = journal.info("journal_file", None, dt.date(2021, 1, 4), None)
+    info = journal.info("journal_file", None, dt.date(2021, 1, 4), None, {})
 
     assert info[0].habit == habit2
     assert info[0].longest_streak == 2
     assert info[0].latest_streak == 1
 
     info = journal.info(
-        "journal_file", None, dt.date(2021, 1, 4), None, ignore_missing=True
+        "journal_file", None, dt.date(2021, 1, 4), None, {}, ignore_missing=True
     )
 
     assert info[0].longest_streak == 3
@@ -467,7 +518,7 @@ def test_info(monkeypatch):
         ),
     )
 
-    info = journal.info("journal_file", None, dt.date(2021, 1, 4), None)
+    info = journal.info("journal_file", None, dt.date(2021, 1, 4), None, {})
 
     assert info[0].habit == habit3
     assert info[0].longest_streak == 2

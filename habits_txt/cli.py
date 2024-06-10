@@ -25,6 +25,14 @@ def _parse_date_callback(ctx, param, value):
         )
 
 
+def _parse_metadata_callback(ctx, param, value):
+    if value:
+        try:
+            return {meta.split(":")[0]: meta.split(":")[1] for meta in value}
+        except ValueError:
+            raise click.BadParameter("Invalid metadata format. Use meta:value")
+
+
 @cli.command()
 @click.argument("file", type=click.File("r+"))
 @click.option(
@@ -134,11 +142,19 @@ def fill(
     "You can specify multiple names using multiple --name flags",
     multiple=True,
 )
-def filter(file, start, end, name):
+@click.option(
+    "-m",
+    "--metadata",
+    help="Filter by metadata. "
+    "You can specify multiple metadata using multiple --metadata flags",
+    multiple=True,
+    callback=_parse_metadata_callback,
+)
+def filter(file, start, end, name, metadata):
     """
     Filter habit records using FILE.
     """
-    records = journal_.filter(file.name, start, end, name)
+    records = journal_.filter(file.name, start, end, name, metadata)
     if records:
         records_str = "\n".join(
             [style_.style_habit_record(record) for record in records]
@@ -146,7 +162,7 @@ def filter(file, start, end, name):
         click.echo(records_str)
     else:
         click.echo(
-            f"{config.get('comment_char', 'CLI', defaults.COMMENT_CHAR)} No records found"
+            f"{config_.get('comment_char', 'CLI', defaults.COMMENT_CHAR)} No records found"
         )
 
 
@@ -173,15 +189,25 @@ def filter(file, start, end, name):
     multiple=True,
 )
 @click.option(
+    "-m",
+    "--metadata",
+    help="Filter by metadata. "
+    "You can specify multiple metadata using multiple --metadata flags",
+    multiple=True,
+    callback=_parse_metadata_callback,
+)
+@click.option(
     "--ignore-missing",
     is_flag=True,
     help="Ignore missing records when computing stats",
 )
-def info(file, start, end, name, ignore_missing):
+def info(file, start, end, name, metadata, ignore_missing):
     """
     Get information about habit records using FILE.
     """
-    habit_completion_infos = journal_.info(file.name, start, end, name, ignore_missing)
+    habit_completion_infos = journal_.info(
+        file.name, start, end, name, metadata, ignore_missing
+    )
     if habit_completion_infos:
         for habit_completion_info in habit_completion_infos:
             click.echo(style_.style_completion_info(habit_completion_info))
@@ -218,15 +244,23 @@ def info(file, start, end, name, ignore_missing):
     multiple=True,
 )
 @click.option(
+    "-m",
+    "--metadata",
+    help="Filter by metadata. "
+    "You can specify multiple metadata using multiple --metadata flags",
+    multiple=True,
+    callback=_parse_metadata_callback,
+)
+@click.option(
     "--ignore-missing",
     is_flag=True,
     help="Ignore missing records when computing stats",
 )
-def chart(file, interval, start, end, name, ignore_missing):
+def chart(file, interval, start, end, name, metadata, ignore_missing):
     """
     Generate a chart of habit records using FILE.
     """
-    journal_.chart(file.name, interval, start, end, name, ignore_missing)
+    journal_.chart(file.name, interval, start, end, name, metadata, ignore_missing)
 
 
 """ tracked command to list the tracked habits at the given date"""

@@ -171,6 +171,7 @@ def _filter_state(
     start_date: dt.date | None,
     end_date: dt.date,
     habit_name: typing.Tuple[str, ...] | None,
+    metadata: dict[str, str] | None,
 ) -> typing.Tuple[
     set[models.Habit],
     list[models.HabitRecord],
@@ -183,6 +184,7 @@ def _filter_state(
     :param start_date: Start date.
     :param end_date: End date.
     :param habit_name: Habit name.
+    :param metadata: Metadata.
     :return: Filtered state.
     """
     tracked_habits, records, habits_records_matches = get_state_at_date(
@@ -207,6 +209,13 @@ def _filter_state(
         for record in records
         if start_date <= record.date <= end_date
         and (not habit_name or record.habit_name in habit_name)
+        and (
+            not metadata
+            or (
+                record.metadata
+                and all(record.metadata.get(k) == v for k, v in metadata.items())
+            )
+        )
     ]
 
     filtered_habits_records_matches = []
@@ -221,6 +230,13 @@ def _filter_state(
             record
             for record in match.habit_records
             if start_date <= record.date <= end_date
+            and (
+                not metadata
+                or (
+                    record.metadata
+                    and all(record.metadata.get(k) == v for k, v in metadata.items())
+                )
+            )
         ]
         filtered_habits_records_matches.append(match)
 
@@ -232,6 +248,7 @@ def filter(
     start_date: dt.date | None,
     end_date: dt.date,
     habit_name: typing.Tuple[str, ...] | None,
+    metadata: dict[str, str] | None,
 ) -> list[models.HabitRecord]:
     """
     Filter records.
@@ -240,9 +257,10 @@ def filter(
     :param start_date: Start date.
     :param end_date: End date.
     :param habit_name: Habit name.
+    :param metadata: Metadata.
     :return: Filtered records.
     """
-    return _filter_state(journal_file, start_date, end_date, habit_name)[1]
+    return _filter_state(journal_file, start_date, end_date, habit_name, metadata)[1]
 
 
 def check(journal_file: str, date: dt.date) -> bool:
@@ -262,6 +280,7 @@ def info(
     start_date: dt.date | None,
     end_date: dt.date,
     habit_name: typing.Tuple[str, ...] | None,
+    metadata: dict[str, str] | None,
     ignore_missing: bool = False,
 ) -> list[models.HabitCompletionInfo]:
     """
@@ -271,11 +290,12 @@ def info(
     :param start_date: Start date.
     :param end_date: End date.
     :param habit_name: Habit name.
+    :param metadata: Metadata.
     :param ignore_missing: Ignore missing records when computing stats.
     :return: Information about the completion of habits.
     """
     tracked_habits, records, habits_records_matches = _filter_state(
-        journal_file, start_date, end_date, habit_name
+        journal_file, start_date, end_date, habit_name, metadata
     )
     completion_infos = []
     for match in habits_records_matches:
@@ -365,6 +385,7 @@ def chart(
     start_date: dt.date | None,
     end_date: dt.date,
     habit_name: typing.Tuple[str, ...] | None,
+    metadata: dict[str, str] | None,
     ignore_missing: bool = False,
 ) -> None:
     """
@@ -375,6 +396,7 @@ def chart(
     :param start_date: Start date.
     :param end_date: End date.
     :param habit_name: Habit name.
+    :param metadata: Metadata.
     :param ignore_missing: Ignore missing records when computing stats.
     """
     if interval == "weekly":
@@ -385,8 +407,14 @@ def chart(
         raise ValueError(f"Invalid interval: {interval}")
 
     tracked_habits, records, habits_records_matches = _filter_state(
-        journal_file, start_date, end_date, habit_name
+        journal_file, start_date, end_date, habit_name, metadata
     )
+
+    if not records:
+        logging.info(
+            f"{config.get('comment_char', 'CLI', defaults.COMMENT_CHAR)} No records to plot"
+        )
+        return
 
     if not start_date:
         start_date = min(record.date for record in records)
@@ -408,7 +436,12 @@ def chart(
     for interval_start, interval_records in records_by_interval.items():
         interval_end = interval_start + interval_td - dt.timedelta(days=1)
         interval_completion_infos = info(
-            journal_file, interval_start, interval_end, habit_name, ignore_missing
+            journal_file,
+            interval_start,
+            interval_end,
+            habit_name,
+            metadata,
+            ignore_missing,
         )
         completion_infos.extend(interval_completion_infos)
 
@@ -418,9 +451,9 @@ def chart(
         )
         return
 
-    habit_names = [info.habit.name for info in completion_infos]
-    interval_starts = [info.start_date for info in completion_infos]
-    average_value = [info.average_value for info in completion_infos]
+    habit_names = [info_.habit.name for info_ in completion_infos]
+    interval_starts = [info_.start_date for info_ in completion_infos]
+    average_value = [info_.average_value for info_ in completion_infos]
 
     fig = px.line(
         x=interval_starts,

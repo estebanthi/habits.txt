@@ -60,6 +60,12 @@ You can't add comments at the end of a line.
 2024-01-01 track "Read 5 pages a day" (* * *)
 ```
 
+**New in `1.1.0`**: You can now add custom metadata to your directives. The metadata should be key-value pairs separated by a colon, and should not include spaces.
+
+```
+2024-01-01 track "Read 5 pages a day" (* * *) metadata1:value1 metadata2:value2
+```
+
 ## Directives
 
 ### track
@@ -92,6 +98,8 @@ To record a habit, you use the `record` directive and specify a value.
 
 The allowed values are `yes`, `no`, or a number. You should not mix boolean and numeric values for the same habit.
 
+**New in `1.1.0`**: If you add custom metadata to a record directive, be sure to add it before the value, because the value should be the last element of the line.
+
 You can write directives but omit the directive type, it will default to `record` (as it is supposed to be the most common directive).
 
 Example:
@@ -100,6 +108,7 @@ Example:
 2024-01-01 record "Read 5 pages a day" 5
 2024-01-01 record "Workout" yes
 2024-01-01 "Weight" 70.5
+2024-01-01 record "Meditation" meta:value yes
 ```
 
 ## Examples
@@ -110,11 +119,13 @@ Example:
 2024-01-01 track "Reading" (* * *)
 2024-01-01 track "Exercise" (* * 1,3,5)
 2024-01-01 track "Weight" (* * 1) measurable
+2024-01-01 track "Meditation" (* * *) meta:value
 
 # Record habits
 2024-01-01 record "Reading" yes
 2024-01-01 record "Exercise" no
 2024-01-01 record "Weight" 70.5
+2024-01-01 record "Meditation" place:home yes
 ```
 
 Once your journal is ready, you can use the CLI to interact with it.
@@ -130,6 +141,9 @@ Exercise (2024-01-01): yes
 # Filter habit records
 hbtxt filter -n "Exercise"
 2024-01-01 Exercise yes
+
+hbtxt filter -m "place:home"
+2024-01-01 Meditation place:home yes
 
 # Get information about the other available commands
 hbtxt --help

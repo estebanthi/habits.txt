@@ -49,6 +49,10 @@ class Colors(Enum):
     AVERAGE_VALUE_bg = None
     AVERAGE_VALUE_bold = True
 
+    FREQUENCY_fg = "bright_yellow"
+    FREQUENCY_bg = None
+    FREQUENCY_bold = False
+
     LONGEST_STREAK_fg = "bright_green"
     LONGEST_STREAK_bg = None
     LONGEST_STREAK_bold = False
@@ -64,6 +68,10 @@ class Colors(Enum):
     LATEST_STREAK_VALUE_fg = "green"
     LATEST_STREAK_VALUE_bg = None
     LATEST_STREAK_VALUE_bold = False
+
+    META_fg = "cyan"
+    META_bg = None
+    META_bold = False
 
 
 def _style_str(s: str, key: str) -> str:
@@ -85,6 +93,7 @@ def style_habit_record(record: models_.HabitRecord) -> str:
                 "DATE",
             ),
             f'"{_style_str(record.habit_name, "HABIT_NAME")}"',
+            _style_str(record._str_meta(), "META"),
             _style_str(record._str_value(), "VALUE"),
         ]
     )
@@ -143,3 +152,31 @@ def style_completion_info(habit_completion_info: models_.HabitCompletionInfo) ->
         ]
     )
     return string
+
+
+def style_tracked_habit(habit: models_.Habit, tracking_start_date: dt.date) -> str:
+    return (
+        "Since "
+        + _style_str(
+            dt.datetime.strftime(
+                tracking_start_date, config.get("date_fmt", "CLI", defaults.DATE_FMT)
+            ),
+            "DATE",
+        )
+        + ": "
+        + _style_str(habit.name, "HABIT_NAME")
+        + " "
+        + _style_str(
+            f"({habit.frequency})",
+            "FREQUENCY",
+        )
+        + " "
+        + (
+            _style_str(
+                "[measurable]",
+                "VALUE",
+            )
+            if habit.is_measurable
+            else ""
+        )
+    )

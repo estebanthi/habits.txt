@@ -82,3 +82,6 @@ def test_frequency_repr():
 
     frequency = models.Frequency("* * *")
     assert frequency.__repr__() == "* * *"
+
+    frequency = models.Frequency("@daily")
+    assert frequency.__repr__() == "@daily"

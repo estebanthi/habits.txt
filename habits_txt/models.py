@@ -61,7 +61,9 @@ class Frequency:
         return n_dates
 
     def __repr__(self):
-        return " ".join(self.cron_str.split()[2:])
+        if self.cron_str.startswith("0 0"):
+            return self.cron_str[4:]
+        return self.cron_str
 
     def __eq__(self, other):
         return self.cron_str == other.cron_str
@@ -81,6 +83,11 @@ class Habit:
     name: str
     frequency: Frequency
     is_measurable: bool = False
+    metadata: dict | None = None
+
+    def __post_init__(self):
+        if self.metadata is None:
+            self.metadata = {}
 
     def __hash__(self):
         return hash(self.name)
@@ -100,6 +107,11 @@ class HabitRecord:
     date: dt.date
     habit_name: str
     value: bool | float | None
+    metadata: dict | None = None
+
+    def __post_init__(self):
+        if self.metadata is None:
+            self.metadata = {}
 
     @property
     def is_complete(self) -> bool:
@@ -108,8 +120,16 @@ class HabitRecord:
     def __str__(self) -> str:
         return (
             f"{dt.datetime.strftime(self.date, config.get("date_fmt", "CLI", defaults.DATE_FMT))} "
-            f'"{self.habit_name}" {self._str_value()}'
+            f'"{self.habit_name}" {self._str_meta()} {self._str_value()}'
         )
+
+    def _str_meta(self) -> str:
+        meta = []
+        if not self.metadata:
+            return ""
+        for key, value in self.metadata.items():
+            meta.append(f"{key}:{value}")
+        return " ".join(meta)
 
     def _str_value(self) -> str:
         if self.value is True:

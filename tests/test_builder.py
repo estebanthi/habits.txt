@@ -7,10 +7,10 @@ import habits_txt.builder as builder
 
 def test_sort_directives():
     directive1 = builder.directives.RecordDirective(
-        dt.datetime(2024, 1, 1), "Habit 1", 1, False
+        dt.datetime(2024, 1, 1), "Habit 1", 1, False, {}
     )
     directive2 = builder.directives.RecordDirective(
-        dt.datetime(2024, 1, 2), "Habit 2", 1, True
+        dt.datetime(2024, 1, 2), "Habit 2", 1, True, {}
     )
 
     sorted_directives = builder._sort_directives([directive2, directive1])
@@ -22,6 +22,7 @@ def test_get_tracked_habits_at_date():
         dt.datetime(2024, 1, 1),
         "Habit 1",
         1,
+        {},
         "0 0 * * *",
         False,
     )
@@ -29,6 +30,7 @@ def test_get_tracked_habits_at_date():
         dt.datetime(2024, 1, 2),
         "Habit 2",
         2,
+        {},
         "0 0 * * *",
         False,
     )
@@ -36,6 +38,7 @@ def test_get_tracked_habits_at_date():
         dt.datetime(2024, 1, 3),
         "Habit 3",
         3,
+        {},
         "0 0 * * *",
         False,
     )
@@ -49,7 +52,7 @@ def test_get_tracked_habits_at_date():
     }
 
     directive4 = builder.directives.UntrackDirective(
-        dt.datetime(2024, 1, 4), "Habit 2", 2
+        dt.datetime(2024, 1, 4), "Habit 2", 2, {}
     )
     tracked_habits = builder._get_tracked_habits_at_date(
         [directive1, directive2, directive3, directive4], dt.datetime(2024, 1, 4)
@@ -65,6 +68,7 @@ def test_check_track_directive_is_valid():
         dt.datetime(2024, 1, 1),
         "Habit 1",
         1,
+        {},
         "0 0 * * *",
         False,
     )
@@ -75,6 +79,7 @@ def test_check_track_directive_is_valid():
         dt.datetime(2024, 1, 1),
         "Habit 1",
         1,
+        {},
         "0 0 * * *",
         False,
     )
@@ -85,13 +90,13 @@ def test_check_track_directive_is_valid():
 
 def test_check_untrack_directive_is_valid():
     directive = builder.directives.UntrackDirective(
-        dt.datetime(2024, 1, 1), "Habit 1", 1
+        dt.datetime(2024, 1, 1), "Habit 1", 1, {}
     )
     current_state = {builder.models.Habit("Habit 1", "0 0 * * *")}
     builder._check_untrack_directive_is_valid(directive, current_state)
 
     directive = builder.directives.UntrackDirective(
-        dt.datetime(2024, 1, 1), "Habit 1", 1
+        dt.datetime(2024, 1, 1), "Habit 1", 1, {}
     )
     current_state = {builder.models.Habit("Habit 2", "0 0 * * *")}
     with pytest.raises(builder.exceptions.ConsistencyError):
@@ -116,6 +121,7 @@ def test_build_habit_from_track_directive():
         dt.datetime(2024, 1, 1),
         "Habit 1",
         1,
+        {},
         "0 0 * * *",
         False,
     )
@@ -126,6 +132,7 @@ def test_build_habit_from_track_directive():
         dt.datetime(2024, 1, 1),
         "Habit 1",
         1,
+        {},
         "0 0 * * *",
         True,
     )
@@ -135,7 +142,7 @@ def test_build_habit_from_track_directive():
 
 def test_build_habit_record_from_record_directive():
     directive = builder.directives.RecordDirective(
-        dt.datetime(2024, 1, 1), "Habit 1", 1, 2.0
+        dt.datetime(2024, 1, 1), "Habit 1", 1, 2.0, {}
     )
     habit_record = builder._build_habit_record_from_record_directive(directive)
     assert habit_record == builder.models.HabitRecord(
@@ -148,17 +155,18 @@ def test_get_records_up_to_date():
         dt.datetime(2024, 1, 1),
         "Habit 1",
         1,
+        {},
         "0 0 * * *",
         True,
     )
     directive1 = builder.directives.RecordDirective(
-        dt.datetime(2024, 1, 1), "Habit 1", 1, 2.0
+        dt.datetime(2024, 1, 1), "Habit 1", 1, 2.0, {}
     )
     directive2 = builder.directives.RecordDirective(
-        dt.datetime(2024, 1, 2), "Habit 1", 1, 3.0
+        dt.datetime(2024, 1, 2), "Habit 1", 1, 3.0, {}
     )
     directive3 = builder.directives.RecordDirective(
-        dt.datetime(2024, 1, 3), "Habit 1", 1, 4.0
+        dt.datetime(2024, 1, 3), "Habit 1", 1, 4.0, {}
     )
 
     records = builder._get_records_up_to_date(
@@ -172,7 +180,7 @@ def test_get_records_up_to_date():
 
 def test_check_record_directive_is_valid():
     directive = builder.directives.RecordDirective(
-        dt.datetime(2024, 1, 1), "Habit 1", 1, 2.0
+        dt.datetime(2024, 1, 1), "Habit 1", 1, 2.0, {}
     )
     tracked_habits = {builder.models.Habit("Habit 1", "0 0 * * *", True)}
     current_records = []
@@ -198,7 +206,7 @@ def test_check_record_directive_is_valid():
     with pytest.raises(builder.exceptions.ConsistencyError):
         tracked_habits = {builder.models.Habit("Habit 1", "0 0 * * *", True)}
         record_directive = builder.directives.RecordDirective(
-            dt.datetime(2024, 1, 1), "Habit 1", 1, True
+            dt.datetime(2024, 1, 1), "Habit 1", 1, True, {}
         )
         builder._check_record_directive_is_valid(
             record_directive, tracked_habits, current_records
@@ -207,7 +215,7 @@ def test_check_record_directive_is_valid():
     with pytest.raises(builder.exceptions.ConsistencyError):
         tracked_habits = {builder.models.Habit("Habit 1", "0 0 * * *", True)}
         record_directive = builder.directives.RecordDirective(
-            dt.datetime(2024, 1, 1), "Habit 1", 1, True
+            dt.datetime(2024, 1, 1), "Habit 1", 1, True, {}
         )
 
         current_records = []
@@ -219,7 +227,7 @@ def test_check_record_directive_is_valid():
     with pytest.raises(builder.exceptions.ConsistencyError):
         tracked_habits = {builder.models.Habit("Habit 1", "0 0 * * *", False)}
         record_directive = builder.directives.RecordDirective(
-            dt.datetime(2024, 1, 1), "Habit 1", 1, 10.0
+            dt.datetime(2024, 1, 1), "Habit 1", 1, 10.0, {}
         )
 
         current_records = []
@@ -234,6 +242,7 @@ def test_get_state_at_date():
         dt.date(2024, 1, 1),
         "Habit 1",
         1,
+        {},
         "0 0 * * *",
         False,
     )
@@ -241,6 +250,7 @@ def test_get_state_at_date():
         dt.date(2024, 1, 2),
         "Habit 2",
         2,
+        {},
         "0 0 * * *",
         False,
     )
@@ -248,12 +258,15 @@ def test_get_state_at_date():
         dt.date(2024, 1, 3),
         "Habit 3",
         3,
+        {},
         "0 0 * * *",
         False,
     )
-    directive4 = builder.directives.UntrackDirective(dt.date(2024, 1, 4), "Habit 2", 2)
+    directive4 = builder.directives.UntrackDirective(
+        dt.date(2024, 1, 4), "Habit 2", 2, {}
+    )
     directive5 = builder.directives.RecordDirective(
-        dt.date(2024, 1, 1), "Habit 1", 1, False
+        dt.date(2024, 1, 1), "Habit 1", 1, False, {}
     )
 
     directives = [directive1, directive2, directive3, directive4, directive5]
@@ -319,6 +332,7 @@ def test_get_track_untrack_record_matches_at_date():
         dt.datetime(2024, 1, 1),
         "Habit 1",
         1,
+        {},
         "0 0 * * *",
         False,
     )
@@ -326,29 +340,29 @@ def test_get_track_untrack_record_matches_at_date():
         dt.datetime(2024, 1, 2),
         "Habit 2",
         2,
+        {},
         "0 0 * * *",
         False,
     )
     directive3 = builder.directives.UntrackDirective(
-        dt.datetime(2024, 1, 3),
-        "Habit 2",
-        2,
+        dt.datetime(2024, 1, 3), "Habit 2", 2, {}
     )
     directive4 = builder.directives.TrackDirective(
         dt.datetime(2024, 1, 4),
         "Habit 3",
         3,
+        {},
         "0 0 * * *",
         False,
     )
     directive_5 = builder.directives.RecordDirective(
-        dt.datetime(2024, 1, 2), "Habit 1", 1, 2.0
+        dt.datetime(2024, 1, 2), "Habit 1", 1, 2.0, {}
     )
     directive_6 = builder.directives.RecordDirective(
-        dt.datetime(2024, 1, 3), "Habit 1", 1, 3.0
+        dt.datetime(2024, 1, 3), "Habit 1", 1, 3.0, {}
     )
     directive_7 = builder.directives.RecordDirective(
-        dt.datetime(2024, 1, 4), "Habit 1", 1, 4.0
+        dt.datetime(2024, 1, 4), "Habit 1", 1, 4.0, {}
     )
 
     assert builder.get_track_untrack_record_matches_at_date(

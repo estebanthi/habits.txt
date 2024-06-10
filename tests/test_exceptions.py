@@ -10,7 +10,7 @@ def test_parse_error():
 
 
 def test_consistency_error():
-    directive = directives.Directive(dt.date(2024, 1, 1), "Sample habit", 1)
+    directive = directives.Directive(dt.date(2024, 1, 1), "Sample habit", 1, {})
     error = exceptions.ConsistencyError("Error message", directive)
     assert str(error) == "Consistency error in line 1: Error message"
     assert error.message == "Consistency error in line 1: Error message"

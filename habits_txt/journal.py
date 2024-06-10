@@ -133,6 +133,7 @@ def _fill_day(
             if interactive:
                 value_is_valid = False
                 parsed_value = None
+                parsed_metadata = {}
                 while not value_is_valid:
                     value = click.prompt(
                         style_habit_input(date, habit.name),
@@ -147,18 +148,27 @@ def _fill_day(
                         break
                     elif value == "save":
                         return records_fill, True
+                    value_is_valid = True
                     try:
-                        parsed_value = parser.parse_value_str(value)
-                        value_is_valid = True
+                        parsed_metadata = parser.parse_metadata(value)
+                    except exceptions.ParseError as e:
+                        logging.error(e)
+                        value_is_valid = False
+                        continue
+                    try:
+                        parsed_value = parser.parse_value(value)
                     except exceptions.ParseError:
                         logging.error(
                             f"Value must be a {"number" if habit.is_measurable else "boolean"}.\n"
                             "(or 's' to skip, 'a' to append to the journal but fill manually later, and "
                             "'save' to save and exit)"
                         )
-                record = models.HabitRecord(date, habit.name, parsed_value)
+                        value_is_valid = False
+                record = models.HabitRecord(
+                    date, habit.name, parsed_value, parsed_metadata
+                )
             else:
-                record = models.HabitRecord(date, habit.name, None)
+                record = models.HabitRecord(date, habit.name, None, {})
 
             if append:
                 records_fill.append(record)

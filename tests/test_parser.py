@@ -179,34 +179,34 @@ def test_parse_frequency():
 
 def test_parse_value():
     directive_line = "2024-01-01 'habit name' 10"
-    value = parser._parse_value(directive_line)
+    value = parser.parse_value(directive_line)
     assert value == 10.0
 
     directive_line = "2024-01-01 'habit name' a"
     with pytest.raises(parser.exceptions.ParseError):
-        parser._parse_value(directive_line)
+        parser.parse_value(directive_line)
 
     directive_line = f"2024-01-01 'habit name' {parser.defaults.BOOLEAN_TRUE}"
-    value = parser._parse_value(directive_line)
+    value = parser.parse_value(directive_line)
     assert value is True
 
     directive_line = f"2024-01-01 'habit name' {parser.defaults.BOOLEAN_FALSE}"
-    value = parser._parse_value(directive_line)
+    value = parser.parse_value(directive_line)
     assert value is False
 
 
 def test_parse_value_str():
-    value = parser.parse_value_str("yes")
+    value = parser._parse_value_str("yes")
     assert value is True
 
-    value = parser.parse_value_str("no")
+    value = parser._parse_value_str("no")
     assert value is False
 
-    value = parser.parse_value_str("10")
+    value = parser._parse_value_str("10")
     assert value == 10.0
 
     with pytest.raises(parser.exceptions.ParseError):
-        parser.parse_value_str("a")
+        parser._parse_value_str("a")
 
 
 def test_handle_index_error_decorator():

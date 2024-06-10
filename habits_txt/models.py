@@ -120,8 +120,16 @@ class HabitRecord:
     def __str__(self) -> str:
         return (
             f"{dt.datetime.strftime(self.date, config.get("date_fmt", "CLI", defaults.DATE_FMT))} "
-            f'"{self.habit_name}" {self._str_value()}'
+            f'"{self.habit_name}" {self._str_meta()} {self._str_value()}'
         )
+
+    def _str_meta(self) -> str:
+        meta = []
+        if not self.metadata:
+            return ""
+        for key, value in self.metadata.items():
+            meta.append(f"{key}:{value}")
+        return " ".join(meta)
 
     def _str_value(self) -> str:
         if self.value is True:

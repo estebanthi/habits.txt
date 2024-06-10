@@ -69,6 +69,10 @@ class Colors(Enum):
     LATEST_STREAK_VALUE_bg = None
     LATEST_STREAK_VALUE_bold = False
 
+    META_fg = "cyan"
+    META_bg = None
+    META_bold = False
+
 
 def _style_str(s: str, key: str) -> str:
     return click.style(
@@ -89,6 +93,7 @@ def style_habit_record(record: models_.HabitRecord) -> str:
                 "DATE",
             ),
             f'"{_style_str(record.habit_name, "HABIT_NAME")}"',
+            _style_str(record._str_meta(), "META"),
             _style_str(record._str_value(), "VALUE"),
         ]
     )

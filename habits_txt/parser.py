@@ -87,7 +87,7 @@ def _parse_directive(directive_line: str, lineno: int) -> directives.Directive |
     elif directive_type == directives.DirectiveType.UNTRACK:
         return directives.UntrackDirective(date, habit_name, lineno, metadata)
     elif directive_type == directives.DirectiveType.RECORD:
-        value = _parse_value(directive_line)
+        value = parse_value(directive_line)
         return directives.RecordDirective(date, habit_name, lineno, value, metadata)
 
     return None
@@ -237,7 +237,7 @@ def _parse_frequency(directive_line: str) -> models.Frequency:
 
 
 @_handle_index_error_decorator(name="value")
-def _parse_value(directive_line: str) -> bool | float:
+def parse_value(directive_line: str) -> bool | float:
     """
     Parse the value from a directive line.
 
@@ -248,15 +248,15 @@ def _parse_value(directive_line: str) -> bool | float:
 
     Example:
     >>> directive_line = '2024-01-02 "Sample habit" yes'
-    >>> value = _parse_value(directive_line)
+    >>> value = parse_value(directive_line)
     >>> print(value)
     True
     """
     value_str = re.split(r"\s+", directive_line)[-1]
-    return parse_value_str(value_str)
+    return _parse_value_str(value_str)
 
 
-def parse_value_str(value_str: str) -> bool | float:
+def _parse_value_str(value_str: str) -> bool | float:
     """
     Parse the value from a string.
 
@@ -265,7 +265,7 @@ def parse_value_str(value_str: str) -> bool | float:
 
     Example:
     >>> value_str = "yes"
-    >>> value = parse_value_str(value_str)
+    >>> value = _parse_value_str(value_str)
     >>> print(value)
     True
     """
@@ -288,14 +288,19 @@ def parse_metadata(directive_line: str) -> dict[str, str]:
     :return: Parsed metadata.
 
     Example:
-    >>> directive_line = '2024-01-02 "Sample habit" meta1:value1 meta2: value2 yes'
+    >>> directive_line = '2024-01-02 "Sample habit" meta1:value1 meta2:value2 yes'
     >>> metadata = parse_metadata(directive_line)
     >>> print(metadata)
     {'meta1': 'value1', 'meta2': 'value2'}
     """
     metadata = {}
-    metadata_str = re.findall(r"\s(\w+:\s?\S+)", directive_line)
+    metadata_str = re.findall(r"(\w+:\S+)", directive_line)
     for meta in metadata_str:
         key, value = meta.split(":")
         metadata[key] = value.strip()
+
+    if len([c for c in directive_line if c == ":"]) != len(metadata_str):
+        raise exceptions.ParseError(f"Invalid metadata format: {directive_line}")
+    if len(metadata) != len(set(metadata.keys())):
+        raise exceptions.ParseError("Duplicate metadata keys are not allowed")
     return metadata

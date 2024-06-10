@@ -37,6 +37,7 @@ def test_parse_directive(monkeypatch):
         dt.date(2024, 1, 1),
         "Sample habit",
         1,
+        {},
         models.Frequency("* * *"),
         False,
     )
@@ -49,6 +50,7 @@ def test_parse_directive(monkeypatch):
         dt.date(2024, 1, 1),
         "Sample habit",
         1,
+        {},
         models.Frequency("* * *"),
         True,
     )
@@ -56,23 +58,34 @@ def test_parse_directive(monkeypatch):
     directive_line = "2024-01-02 'Sample habit' yes"
     directive = parser._parse_directive(directive_line, 2)
     assert directive == parser.directives.RecordDirective(
-        dt.date(2024, 1, 2), "Sample habit", 2, True
+        dt.date(2024, 1, 2), "Sample habit", 2, True, {}
     )
 
     directive_line = "2024-01-03 untrack 'Sample habit'"
     directive = parser._parse_directive(directive_line, 3)
     assert directive == parser.directives.UntrackDirective(
-        dt.date(2024, 1, 3), "Sample habit", 3
+        dt.date(2024, 1, 3), "Sample habit", 3, {}
     )
 
     directive_line = "2024-01-04 'Sample habit' 2"
     directive = parser._parse_directive(directive_line, 4)
     assert directive == parser.directives.RecordDirective(
-        dt.date(2024, 1, 4), "Sample habit", 4, 2.0
+        dt.date(2024, 1, 4), "Sample habit", 4, 2.0, {}
     )
 
     assert parser._parse_directive("", 5) is None
     assert parser._parse_directive(parser.defaults.COMMENT_CHAR, 6) is None
+
+    directive_line = "2024-01-01 track 'Sample habit' (* * *) meta:test"
+    directive = parser._parse_directive(directive_line, 7)
+    assert directive == parser.directives.TrackDirective(
+        dt.date(2024, 1, 1),
+        "Sample habit",
+        7,
+        {"meta": "test"},
+        models.Frequency("* * *"),
+        False,
+    )
 
     monkeypatch.setattr(
         "habits_txt.parser._parse_directive_type",
@@ -166,34 +179,34 @@ def test_parse_frequency():
 
 def test_parse_value():
     directive_line = "2024-01-01 'habit name' 10"
-    value = parser._parse_value(directive_line)
+    value = parser.parse_value(directive_line)
     assert value == 10.0
 
     directive_line = "2024-01-01 'habit name' a"
     with pytest.raises(parser.exceptions.ParseError):
-        parser._parse_value(directive_line)
+        parser.parse_value(directive_line)
 
     directive_line = f"2024-01-01 'habit name' {parser.defaults.BOOLEAN_TRUE}"
-    value = parser._parse_value(directive_line)
+    value = parser.parse_value(directive_line)
     assert value is True
 
     directive_line = f"2024-01-01 'habit name' {parser.defaults.BOOLEAN_FALSE}"
-    value = parser._parse_value(directive_line)
+    value = parser.parse_value(directive_line)
     assert value is False
 
 
 def test_parse_value_str():
-    value = parser.parse_value_str("yes")
+    value = parser._parse_value_str("yes")
     assert value is True
 
-    value = parser.parse_value_str("no")
+    value = parser._parse_value_str("no")
     assert value is False
 
-    value = parser.parse_value_str("10")
+    value = parser._parse_value_str("10")
     assert value == 10.0
 
     with pytest.raises(parser.exceptions.ParseError):
-        parser.parse_value_str("a")
+        parser._parse_value_str("a")
 
 
 def test_handle_index_error_decorator():

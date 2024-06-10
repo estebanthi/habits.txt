@@ -151,6 +151,20 @@ def test_build_habit_from_track_directive():
         "Habit 1", builder.models.Frequency("0 0 * * *"), True
     )
 
+    metadata = {"meta": "test"}
+    directive = builder.directives.TrackDirective(
+        dt.datetime(2024, 1, 1),
+        "Habit 1",
+        1,
+        metadata,
+        builder.models.Frequency("0 0 * * *"),
+        False,
+    )
+    habit = builder._build_habit_from_track_directive(directive)
+    assert habit == builder.models.Habit(
+        "Habit 1", builder.models.Frequency("0 0 * * *"), False, metadata
+    )
+
 
 def test_build_habit_record_from_record_directive():
     directive = builder.directives.RecordDirective(
@@ -159,6 +173,15 @@ def test_build_habit_record_from_record_directive():
     habit_record = builder._build_habit_record_from_record_directive(directive)
     assert habit_record == builder.models.HabitRecord(
         dt.datetime(2024, 1, 1), "Habit 1", 2.0
+    )
+
+    metadata = {"meta": "test"}
+    directive = builder.directives.RecordDirective(
+        dt.datetime(2024, 1, 1), "Habit 1", 1, 2.0, metadata
+    )
+    habit_record = builder._build_habit_record_from_record_directive(directive)
+    assert habit_record == builder.models.HabitRecord(
+        dt.datetime(2024, 1, 1), "Habit 1", 2.0, metadata
     )
 
 

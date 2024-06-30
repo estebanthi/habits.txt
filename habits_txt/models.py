@@ -30,7 +30,7 @@ class Frequency:
         except ValueError:
             raise ValueError(f"Invalid cron string: {self.cron_str}")
         if cron.get_next(dt.datetime) < dt.datetime(
-            today.year, today.month, today.day + 1
+            today.year, today.month, today.day, 23, 59, 59, 999999
         ):
             raise ValueError("Intraday frequencies are not supported.")
 
@@ -120,7 +120,7 @@ class HabitRecord:
     def __str__(self) -> str:
         return (
             f"{dt.datetime.strftime(self.date, config.get("date_fmt", "CLI", defaults.DATE_FMT))} "
-            f'"{self.habit_name}" {self._str_meta()} {self._str_value()}'
+            f'"{self.habit_name}"{" " + self._str_meta() if self._str_meta() else ""} {self._str_value()}'
         )
 
     def _str_meta(self) -> str:
